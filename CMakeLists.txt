@@ -49,7 +49,7 @@ if(MITK_Local_EP)
   message("Use local ep")
   set(MITK_LOCAL_EP_PATH CACHE PATH "local ep path")
   if(NOT MITK_LOCAL_EP_PATH)
-    message(FATAL_ERROR "not set path to local ep, Set or turn OFF option MITK_Local_EP")
+    message("not set path to local ep, MITK_Local_EP ON but still download form net")
   else()
     string(CONCAT url "file:///" ${MITK_LOCAL_EP_PATH})
     set(MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL ${url} CACHE PATH "")
@@ -283,7 +283,7 @@ option(MITK_USE_Python3 "Use Python 3" OFF)
 # Build configurations
 #-----------------------------------------------------------------------------
 
-set(_buildConfigs "Custom")
+set(_buildConfigs "LancetRelease")
 
 file(GLOB _buildConfigFiles CMake/BuildConfigurations/*.cmake)
 
