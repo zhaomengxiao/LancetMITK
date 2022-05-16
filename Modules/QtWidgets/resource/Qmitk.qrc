@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/Qmitk">
+        <file>Binaerbilder_48.png</file>
+        <file>Images_48.png</file>
+        <file>PointSet_48.png</file>
+        <file>Segmentation_48.png</file>
+        <file>Surface_48.png</file>
+        <file>mm_pointer.png</file>
+        <file>mm_scroll.png</file>
+        <file>mm_zoom.png</file>
+        <file>mm_contrast.png</file>
+        <file>mm_pan.png</file>
+        <file>LabelSetImage_48.png</file>
+		<file>mwLayout.png</file>
+		<file>mwSynchronized.png</file>
+		<file>mwDesynchronized.png</file>
+		<file>mwMITK.png</file>
+		<file>mwPACS.png</file>
+		<file>star-solid.svg</file>
+		<file>history-solid.svg</file>
+		<file>tree_inspector.svg</file>
+		<file>list-solid.svg</file>
+		<file>favorite_add.svg</file>
+		<file>favorite_remove.svg</file>
+		<file>hourglass-half-solid.svg</file>
+	</qresource>
+</RCC>

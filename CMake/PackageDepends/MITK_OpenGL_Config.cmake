@@ -1,0 +1,3 @@
+set(OpenGL_GL_PREFERENCE LEGACY)
+find_package(OpenGL REQUIRED)
+list(APPEND ALL_LIBRARIES OpenGL::GL)

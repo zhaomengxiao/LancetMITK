@@ -1,0 +1,4 @@
+MITK_CREATE_MODULE(
+  DEPENDS MitkQtWidgets MitkRenderWindowManager
+  PACKAGE_DEPENDS PUBLIC Qt5|Core
+)

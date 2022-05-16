@@ -1,0 +1,23 @@
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef QMITKENUMS_H_
+#define QMITKENUMS_H_
+
+/// \ingroup QmitkModule
+enum QmitkItemModelRole
+{
+  QmitkDataNodeRole = 64,
+  QmitkDataNodeRawPointerRole = 65
+};
+
+#endif /* QMITKENUMS_H_ */

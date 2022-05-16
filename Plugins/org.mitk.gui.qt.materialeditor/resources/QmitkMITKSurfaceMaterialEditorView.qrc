@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+ <qresource prefix="/QmitkTemplate">
+     <file>SurfaceMaterialEditor.png</file>
+ </qresource>
+ </RCC>

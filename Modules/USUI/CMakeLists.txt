@@ -1,0 +1,4 @@
+MITK_CREATE_MODULE(
+  INCLUDE_DIRS Qmitk
+  DEPENDS MitkUS MitkQtWidgetsExt
+)

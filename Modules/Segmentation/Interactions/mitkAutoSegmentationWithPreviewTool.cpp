@@ -1,0 +1,736 @@
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAutoSegmentationWithPreviewTool.h"
+
+#include "mitkToolManager.h"
+
+#include "mitkColorProperty.h"
+#include "mitkLevelWindowProperty.h"
+#include "mitkProperties.h"
+
+#include "mitkDataStorage.h"
+#include "mitkRenderingManager.h"
+#include <mitkSliceNavigationController.h>
+
+#include "mitkImageAccessByItk.h"
+#include "mitkImageCast.h"
+#include "mitkImageStatisticsHolder.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkLabelSetImage.h"
+#include "mitkMaskAndCutRoiImageFilter.h"
+#include "mitkPadImageFilter.h"
+#include "mitkNodePredicateGeometry.h"
+#include "mitkSegTool2D.h"
+
+#include <itkBinaryFunctorImageFilter.h>
+
+mitk::AutoSegmentationWithPreviewTool::AutoSegmentationWithPreviewTool(bool lazyDynamicPreviews): m_LazyDynamicPreviews(lazyDynamicPreviews)
+{
+  m_ProgressCommand = ToolCommand::New();
+}
+
+mitk::AutoSegmentationWithPreviewTool::AutoSegmentationWithPreviewTool(bool lazyDynamicPreviews, const char* interactorType, const us::Module* interactorModule) : AutoSegmentationTool(interactorType, interactorModule), m_LazyDynamicPreviews(lazyDynamicPreviews)
+{
+  m_ProgressCommand = ToolCommand::New();
+}
+
+mitk::AutoSegmentationWithPreviewTool::~AutoSegmentationWithPreviewTool()
+{
+}
+
+bool mitk::AutoSegmentationWithPreviewTool::CanHandle(const BaseData* referenceData, const BaseData* workingData) const
+{
+  if (!Superclass::CanHandle(referenceData, workingData))
+    return false;
+
+  if (workingData == nullptr)
+    return true;
+
+  auto* labelSet = dynamic_cast<const LabelSetImage*>(workingData);
+
+  if (labelSet != nullptr)
+    return true;
+
+  auto* image = dynamic_cast<const Image*>(workingData);
+
+  if (image == nullptr)
+    return false;
+
+  //if it is a normal image and not a label set image is used as working data
+  //it must have the same pixel type as a label set.
+  return MakeScalarPixelType< DefaultSegmentationDataType >() == image->GetPixelType();
+}
+
+void mitk::AutoSegmentationWithPreviewTool::Activated()
+{
+  Superclass::Activated();
+
+  this->GetToolManager()->RoiDataChanged +=
+    MessageDelegate<AutoSegmentationWithPreviewTool>(this, &AutoSegmentationWithPreviewTool::OnRoiDataChanged);
+
+  this->GetToolManager()->SelectedTimePointChanged +=
+    MessageDelegate<AutoSegmentationWithPreviewTool>(this, &AutoSegmentationWithPreviewTool::OnTimePointChanged);
+
+  m_ReferenceDataNode = this->GetToolManager()->GetReferenceData(0);
+  m_SegmentationInputNode = m_ReferenceDataNode;
+
+  m_LastTimePointOfUpdate = RenderingManager::GetInstance()->GetTimeNavigationController()->GetSelectedTimePoint();
+
+  if (m_PreviewSegmentationNode.IsNull())
+  {
+    m_PreviewSegmentationNode = DataNode::New();
+    m_PreviewSegmentationNode->SetProperty("color", ColorProperty::New(0.0, 1.0, 0.0));
+    m_PreviewSegmentationNode->SetProperty("name", StringProperty::New(std::string(this->GetName())+" preview"));
+    m_PreviewSegmentationNode->SetProperty("opacity", FloatProperty::New(0.3));
+    m_PreviewSegmentationNode->SetProperty("binary", BoolProperty::New(true));
+    m_PreviewSegmentationNode->SetProperty("helper object", BoolProperty::New(true));
+  }
+
+  if (m_SegmentationInputNode.IsNotNull())
+  {
+    this->ResetPreviewNode();
+    this->InitiateToolByInput();
+  }
+  else
+  {
+    this->GetToolManager()->ActivateTool(-1);
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::Deactivated()
+{
+  this->GetToolManager()->RoiDataChanged -=
+    MessageDelegate<AutoSegmentationWithPreviewTool>(this, &AutoSegmentationWithPreviewTool::OnRoiDataChanged);
+
+  this->GetToolManager()->SelectedTimePointChanged -=
+    MessageDelegate<AutoSegmentationWithPreviewTool>(this, &AutoSegmentationWithPreviewTool::OnTimePointChanged);
+
+  m_SegmentationInputNode = nullptr;
+  m_ReferenceDataNode = nullptr;
+  m_WorkingPlaneGeometry = nullptr;
+
+  try
+  {
+    if (DataStorage *storage = this->GetToolManager()->GetDataStorage())
+    {
+      storage->Remove(m_PreviewSegmentationNode);
+      RenderingManager::GetInstance()->RequestUpdateAll();
+    }
+  }
+  catch (...)
+  {
+    // don't care
+  }
+
+  if (m_PreviewSegmentationNode.IsNotNull())
+  {
+    m_PreviewSegmentationNode->SetData(nullptr);
+  }
+
+  Superclass::Deactivated();
+}
+
+void mitk::AutoSegmentationWithPreviewTool::ConfirmSegmentation()
+{
+  bool labelChanged = this->EnsureUpToDateUserDefinedActiveLabel();
+  if ((m_LazyDynamicPreviews && m_CreateAllTimeSteps) || labelChanged)
+  { // The tool should create all time steps but is currently in lazy mode,
+    // thus ensure that a preview for all time steps is available.
+    this->UpdatePreview(true);
+  }
+
+
+  CreateResultSegmentationFromPreview();
+
+  RenderingManager::GetInstance()->RequestUpdateAll();
+
+  if (!m_KeepActiveAfterAccept)
+  {
+    this->GetToolManager()->ActivateTool(-1);
+  }
+}
+
+void  mitk::AutoSegmentationWithPreviewTool::InitiateToolByInput()
+{
+  //default implementation does nothing.
+  //implement in derived classes to change behavior
+}
+
+mitk::Image* mitk::AutoSegmentationWithPreviewTool::GetPreviewSegmentation()
+{
+  if (m_PreviewSegmentationNode.IsNull())
+  {
+    return nullptr;
+  }
+
+  return dynamic_cast<Image*>(m_PreviewSegmentationNode->GetData());
+}
+
+mitk::DataNode* mitk::AutoSegmentationWithPreviewTool::GetPreviewSegmentationNode()
+{
+  return m_PreviewSegmentationNode;
+}
+
+const mitk::Image* mitk::AutoSegmentationWithPreviewTool::GetSegmentationInput() const
+{
+  if (m_SegmentationInputNode.IsNull())
+  {
+    return nullptr;
+  }
+
+  return dynamic_cast<const Image*>(m_SegmentationInputNode->GetData());
+}
+
+const mitk::Image* mitk::AutoSegmentationWithPreviewTool::GetReferenceData() const
+{
+  if (m_ReferenceDataNode.IsNull())
+  {
+    return nullptr;
+  }
+
+  return dynamic_cast<const Image*>(m_ReferenceDataNode->GetData());
+}
+
+template <typename ImageType>
+void ClearBufferProcessing(ImageType* itkImage)
+{
+  itkImage->FillBuffer(0);
+}
+
+void mitk::AutoSegmentationWithPreviewTool::ResetPreviewContentAtTimeStep(unsigned int timeStep)
+{
+  auto previewImage = GetImageByTimeStep(this->GetPreviewSegmentation(), timeStep);
+  if (nullptr != previewImage)
+  {
+    AccessByItk(previewImage, ClearBufferProcessing);
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::ResetPreviewContent()
+{
+  auto previewImage = this->GetPreviewSegmentation();
+  if (nullptr != previewImage)
+  {
+    auto castedPreviewImage =
+      dynamic_cast<LabelSetImage*>(previewImage);
+    if (nullptr == castedPreviewImage) mitkThrow() << "Application is on wrong state / invalid tool implementation. Preview image should always be of type LabelSetImage now.";
+    castedPreviewImage->ClearBuffer();
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::ResetPreviewNode()
+{
+  if (m_IsUpdating)
+  {
+    mitkThrow() << "Used tool is implemented incorrectly. ResetPreviewNode is called while preview update is ongoing. Check implementation!";
+  }
+
+  itk::RGBPixel<float> previewColor;
+  previewColor[0] = 0.0f;
+  previewColor[1] = 1.0f;
+  previewColor[2] = 0.0f;
+
+  const auto image = this->GetSegmentationInput();
+  if (nullptr != image)
+  {
+    LabelSetImage::ConstPointer workingImage =
+      dynamic_cast<const LabelSetImage *>(this->GetToolManager()->GetWorkingData(0)->GetData());
+
+    if (workingImage.IsNotNull())
+    {
+      auto newPreviewImage = workingImage->Clone();
+      if (this->GetResetsToEmptyPreview())
+      {
+        newPreviewImage->ClearBuffer();
+      }
+
+      if (newPreviewImage.IsNull())
+      {
+        MITK_ERROR << "Cannot create preview helper objects. Unable to clone working image";
+        return;
+      }
+
+      m_PreviewSegmentationNode->SetData(newPreviewImage);
+
+      // Let's paint the feedback node green...
+      auto* activeLayer = newPreviewImage->GetActiveLabelSet();
+      auto* activeLabel = activeLayer->GetActiveLabel();
+      activeLabel->SetColor(previewColor);
+      activeLayer->UpdateLookupTable(activeLabel->GetValue());
+    }
+    else
+    {
+      Image::ConstPointer workingImageBin = dynamic_cast<const Image*>(this->GetToolManager()->GetWorkingData(0)->GetData());
+      if (workingImageBin.IsNotNull())
+      {
+        Image::Pointer newPreviewImage;
+        if (this->GetResetsToEmptyPreview())
+        {
+          newPreviewImage = Image::New();
+          newPreviewImage->Initialize(workingImageBin);
+        }
+        else
+        {
+          auto newPreviewImage = workingImageBin->Clone();
+        }
+        if (newPreviewImage.IsNull())
+        {
+          MITK_ERROR << "Cannot create preview helper objects. Unable to clone working image";
+          return;
+        }
+        m_PreviewSegmentationNode->SetData(newPreviewImage);
+      }
+      else
+      {
+        mitkThrow() << "Tool is an invalid state. Cannot setup preview node. Working data is an unsupported class and should have not been accepted by CanHandle().";
+      }
+    }
+
+    m_PreviewSegmentationNode->SetColor(previewColor);
+    m_PreviewSegmentationNode->SetOpacity(0.5);
+
+    int layer(50);
+    m_ReferenceDataNode->GetIntProperty("layer", layer);
+    m_PreviewSegmentationNode->SetIntProperty("layer", layer + 1);
+
+    if (DataStorage *ds = this->GetToolManager()->GetDataStorage())
+    {
+      if (!ds->Exists(m_PreviewSegmentationNode))
+        ds->Add(m_PreviewSegmentationNode, m_ReferenceDataNode);
+    }
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::TransferImageAtTimeStep(const Image* sourceImage, Image* destinationImage, const TimeStepType timeStep)
+{
+  try
+  {
+    Image::ConstPointer sourceImageAtTimeStep = this->GetImageByTimeStep(sourceImage, timeStep);
+
+    if (sourceImageAtTimeStep->GetPixelType() != destinationImage->GetPixelType())
+    {
+      mitkThrow() << "Cannot transfer images. Tool is in an invalid state, source image and destination image do not have the same pixel type. "
+        << "Source pixel type: " << sourceImage->GetPixelType().GetTypeAsString()
+        << "; destination pixel type: " << destinationImage->GetPixelType().GetTypeAsString();
+    }
+
+    if (!Equal(*(sourceImage->GetGeometry(timeStep)), *(destinationImage->GetGeometry(timeStep)), NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_COORDINATE_PRECISION, NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_DIRECTION_PRECISION, false))
+    {
+      mitkThrow() << "Cannot transfer images. Tool is in an invalid state, source image and destination image do not have the same geometry.";
+    }
+
+    if (nullptr != this->GetWorkingPlaneGeometry())
+    {
+      auto sourceSlice = SegTool2D::GetAffectedImageSliceAs2DImage(this->GetWorkingPlaneGeometry(), sourceImage, timeStep);
+      SegTool2D::WriteBackSegmentationResult(this->GetTargetSegmentationNode(), m_WorkingPlaneGeometry, sourceSlice, timeStep);
+    }
+    else
+    { //take care of the full segmentation volume
+      auto sourceLSImage = dynamic_cast<const LabelSetImage*>(sourceImage);
+      auto destLSImage = dynamic_cast<LabelSetImage*>(destinationImage);
+
+      TransferLabelContent(sourceLSImage, destLSImage, { {this->GetUserDefinedActiveLabel(),this->GetUserDefinedActiveLabel()} }, false, timeStep);
+    }
+  }
+  catch (...)
+  {
+    Tool::ErrorMessage("Error accessing single time steps of the original image. Cannot create segmentation.");
+    throw;
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::CreateResultSegmentationFromPreview()
+{
+  const auto segInput = this->GetSegmentationInput();
+  auto previewImage = this->GetPreviewSegmentation();
+  if (nullptr != segInput && nullptr != previewImage)
+  {
+    DataNode::Pointer resultSegmentationNode = GetTargetSegmentationNode();
+
+    if (resultSegmentationNode.IsNotNull())
+    {
+      const auto timePoint = RenderingManager::GetInstance()->GetTimeNavigationController()->GetSelectedTimePoint();
+      auto resultSegmentation = dynamic_cast<Image*>(resultSegmentationNode->GetData());
+
+      // REMARK: the following code in this scope assumes that previewImage and resultSegmentation
+      // are clones of the working image (segmentation provided to the tool). Therefore they have
+      // the same time geometry.
+      if (previewImage->GetTimeSteps() != resultSegmentation->GetTimeSteps())
+      {
+        mitkThrow() << "Cannot perform threshold. Internal tool state is invalid."
+          << " Preview segmentation and segmentation result image have different time geometries.";
+      }
+
+      if (m_CreateAllTimeSteps)
+      {
+        for (unsigned int timeStep = 0; timeStep < previewImage->GetTimeSteps(); ++timeStep)
+        {
+          this->TransferImageAtTimeStep(previewImage, resultSegmentation, timeStep);
+        }
+      }
+      else
+      {
+        const auto timeStep = resultSegmentation->GetTimeGeometry()->TimePointToTimeStep(timePoint);
+        this->TransferImageAtTimeStep(previewImage, resultSegmentation, timeStep);
+      }
+
+      // since we are maybe working on a smaller image, pad it to the size of the original image
+      if (m_ReferenceDataNode.GetPointer() != m_SegmentationInputNode.GetPointer())
+      {
+        PadImageFilter::Pointer padFilter = PadImageFilter::New();
+
+        padFilter->SetInput(0, resultSegmentation);
+        padFilter->SetInput(1, dynamic_cast<Image*>(m_ReferenceDataNode->GetData()));
+        padFilter->SetBinaryFilter(true);
+        padFilter->SetUpperThreshold(1);
+        padFilter->SetLowerThreshold(1);
+        padFilter->Update();
+
+        resultSegmentationNode->SetData(padFilter->GetOutput());
+      }
+      if (m_OverwriteExistingSegmentation)
+      { //if we overwrite the segmentation (and not just store it as a new result
+        //in the data storage) we update also the tool manager state.
+        this->GetToolManager()->SetWorkingData(resultSegmentationNode);
+        this->GetToolManager()->GetWorkingData(0)->Modified();
+      }
+      this->EnsureTargetSegmentationNodeInDataStorage();
+    }
+  }
+}
+
+void mitk::AutoSegmentationWithPreviewTool::OnRoiDataChanged()
+{
+  DataNode::ConstPointer node = this->GetToolManager()->GetRoiData(0);
+
+  if (node.IsNotNull())
+  {
+    MaskAndCutRoiImageFilter::Pointer roiFilter = MaskAndCutRoiImageFilter::New();
+    Image::Pointer image = dynamic_cast<Image *>(m_SegmentationInputNode->GetData());
+
+    if (image.IsNull())
+      return;
+
+    roiFilter->SetInput(image);
+    roiFilter->SetRegionOfInterest(node->GetData());
+    roiFilter->Update();
+
+    DataNode::Pointer tmpNode = DataNode::New();
+    tmpNode->SetData(roiFilter->GetOutput());
+
+    m_SegmentationInputNode = tmpNode;
+  }
+  else
+    m_SegmentationInputNode = m_ReferenceDataNode;
+
+  this->ResetPreviewNode();
+  this->InitiateToolByInput();
+  this->UpdatePreview();
+}
+
+void mitk::AutoSegmentationWithPreviewTool::OnTimePointChanged()
+{
+  if (m_IsTimePointChangeAware && m_PreviewSegmentationNode.IsNotNull() && m_SegmentationInputNode.IsNotNull())
+  {
+    const auto timePoint = RenderingManager::GetInstance()->GetTimeNavigationController()->GetSelectedTimePoint();
+
+    const bool isStaticSegOnDynamicImage = m_PreviewSegmentationNode->GetData()->GetTimeSteps() == 1 && m_SegmentationInputNode->GetData()->GetTimeSteps() > 1;
+    if (timePoint!=m_LastTimePointOfUpdate && (isStaticSegOnDynamicImage || m_LazyDynamicPreviews))
+    { //we only need to update either because we are lazzy
+      //or because we have a static segmentation with a dynamic image 
+      this->UpdatePreview();
+    }
+  }
+}
+
+bool mitk::AutoSegmentationWithPreviewTool::EnsureUpToDateUserDefinedActiveLabel()
+{
+  bool labelChanged = true;
+
+  const auto workingImage = dynamic_cast<const Image*>(this->GetToolManager()->GetWorkingData(0)->GetData());
+  if (const auto& labelSetImage = dynamic_cast<const LabelSetImage*>(workingImage))
+  {
+    // this is a fix for T28131 / T28986, which should be refactored if T28524 is being worked on
+    auto newLabel = labelSetImage->GetActiveLabel(labelSetImage->GetActiveLayer())->GetValue();
+    labelChanged = newLabel != m_UserDefinedActiveLabel;
+    m_UserDefinedActiveLabel = newLabel;
+  }
+  else
+  {
+    m_UserDefinedActiveLabel = 1;
+    labelChanged = false;
+  }
+  return labelChanged;
+}
+
+void mitk::AutoSegmentationWithPreviewTool::UpdatePreview(bool ignoreLazyPreviewSetting)
+{
+  const auto inputImage = this->GetSegmentationInput();
+  auto previewImage = this->GetPreviewSegmentation();
+  int progress_steps = 200;
+
+  const auto workingImage = dynamic_cast<const Image*>(this->GetToolManager()->GetWorkingData(0)->GetData());
+  this->EnsureUpToDateUserDefinedActiveLabel();
+
+  this->CurrentlyBusy.Send(true);
+  m_IsUpdating = true;
+
+  this->UpdatePrepare();
+
+  const auto timePoint = RenderingManager::GetInstance()->GetTimeNavigationController()->GetSelectedTimePoint();
+
+  try
+  {
+    if (nullptr != inputImage && nullptr != previewImage)
+    {
+      m_ProgressCommand->AddStepsToDo(progress_steps);
+
+      if (previewImage->GetTimeSteps() > 1 && (ignoreLazyPreviewSetting || !m_LazyDynamicPreviews))
+      {
+        for (unsigned int timeStep = 0; timeStep < previewImage->GetTimeSteps(); ++timeStep)
+        {
+          Image::ConstPointer feedBackImage;
+          Image::ConstPointer currentSegImage;
+
+          auto previewTimePoint = previewImage->GetTimeGeometry()->TimeStepToTimePoint(timeStep);
+          auto inputTimeStep = inputImage->GetTimeGeometry()->TimePointToTimeStep(previewTimePoint);
+
+          if (nullptr != this->GetWorkingPlaneGeometry())
+          { //only extract a specific slice defined by the working plane as feedback image.
+            feedBackImage = SegTool2D::GetAffectedImageSliceAs2DImage(this->GetWorkingPlaneGeometry(), inputImage, inputTimeStep);
+            currentSegImage = SegTool2D::GetAffectedImageSliceAs2DImageByTimePoint(this->GetWorkingPlaneGeometry(), workingImage, previewTimePoint);
+          }
+          else
+          { //work on the whole feedback image
+            feedBackImage = this->GetImageByTimeStep(inputImage, inputTimeStep);
+            currentSegImage = this->GetImageByTimePoint(workingImage, previewTimePoint);
+          }
+
+          this->DoUpdatePreview(feedBackImage, currentSegImage, previewImage, timeStep);
+        }
+      }
+      else
+      {
+        Image::ConstPointer feedBackImage;
+        Image::ConstPointer currentSegImage;
+
+        if (nullptr != this->GetWorkingPlaneGeometry())
+        {
+          feedBackImage = SegTool2D::GetAffectedImageSliceAs2DImageByTimePoint(this->GetWorkingPlaneGeometry(), inputImage, timePoint);
+          currentSegImage = SegTool2D::GetAffectedImageSliceAs2DImageByTimePoint(this->GetWorkingPlaneGeometry(), workingImage, timePoint);
+        }
+        else
+        {
+          feedBackImage = this->GetImageByTimePoint(inputImage, timePoint);
+          currentSegImage = this->GetImageByTimePoint(workingImage, timePoint);
+        }
+
+        auto timeStep = previewImage->GetTimeGeometry()->TimePointToTimeStep(timePoint);
+
+        this->DoUpdatePreview(feedBackImage, currentSegImage, previewImage, timeStep);
+      }
+      RenderingManager::GetInstance()->RequestUpdateAll();
+    }
+  }
+  catch (itk::ExceptionObject & excep)
+  {
+    MITK_ERROR << "Exception caught: " << excep.GetDescription();
+
+    m_ProgressCommand->SetProgress(progress_steps);
+
+    std::string msg = excep.GetDescription();
+    ErrorMessage.Send(msg);
+  }
+  catch (...)
+  {
+    m_ProgressCommand->SetProgress(progress_steps);
+    m_IsUpdating = false;
+    CurrentlyBusy.Send(false);
+    throw;
+  }
+
+  this->UpdateCleanUp();
+  m_LastTimePointOfUpdate = timePoint;
+  m_ProgressCommand->SetProgress(progress_steps);
+  m_IsUpdating = false;
+  CurrentlyBusy.Send(false);
+}
+
+bool mitk::AutoSegmentationWithPreviewTool::IsUpdating() const
+{
+  return m_IsUpdating;
+}
+
+void mitk::AutoSegmentationWithPreviewTool::UpdatePrepare()
+{
+  // default implementation does nothing
+  //reimplement in derived classes for special behavior
+}
+
+void mitk::AutoSegmentationWithPreviewTool::UpdateCleanUp()
+{
+  // default implementation does nothing
+  //reimplement in derived classes for special behavior
+}
+
+mitk::TimePointType mitk::AutoSegmentationWithPreviewTool::GetLastTimePointOfUpdate() const
+{
+  return m_LastTimePointOfUpdate;
+}
+
+/** Functor class that implements the label transfer and is used in conjunction with the itk::BinaryFunctorImageFilter.
+* For details regarding the usage of the filter and the functor patterns, please see info of itk::BinaryFunctorImageFilter.
+*/
+template <class TDestinationPixel, class TSourcePixel, class TOutputpixel>
+class LabelTransferFunctor
+{
+
+public:
+  LabelTransferFunctor(){};
+
+  LabelTransferFunctor(const mitk::LabelSet* destinationLabelSet, mitk::Label::PixelType sourceBackground,
+    mitk::Label::PixelType destinationBackground, bool destinationBackgroundLocked,
+    mitk::Label::PixelType sourceLabel, mitk::Label::PixelType newDestinationLabel, bool mergeMode) :
+    m_DestinationLabelSet(destinationLabelSet), m_SourceBackground(sourceBackground),
+    m_DestinationBackground(destinationBackground), m_DestinationBackgroundLocked(destinationBackgroundLocked),
+    m_SourceLabel(sourceLabel), m_NewDestinationLabel(newDestinationLabel), m_MergeMode(mergeMode)
+  {
+  };
+
+  ~LabelTransferFunctor() {};
+
+  bool operator!=(const LabelTransferFunctor& other)const
+  {
+    return !(*this == other);
+  }
+  bool operator==(const LabelTransferFunctor& other) const
+  {
+    return this->m_SourceBackground == other.m_SourceBackground &&
+      this->m_DestinationBackground == other.m_DestinationBackground &&
+      this->m_DestinationBackgroundLocked == other.m_DestinationBackgroundLocked &&
+      this->m_SourceLabel == other.m_SourceLabel &&
+      this->m_NewDestinationLabel == other.m_NewDestinationLabel &&
+      this->m_MergeMode == other.m_MergeMode &&
+      this->m_DestinationLabelSet == other.m_DestinationLabelSet;
+  }
+
+  LabelTransferFunctor& operator=(const LabelTransferFunctor& other)
+  {
+    this->m_DestinationLabelSet = other.m_DestinationLabelSet;
+    this->m_SourceBackground = other.m_SourceBackground;
+    this->m_DestinationBackground = other.m_DestinationBackground;
+    this->m_DestinationBackgroundLocked = other.m_DestinationBackgroundLocked;
+    this->m_SourceLabel = other.m_SourceLabel;
+    this->m_NewDestinationLabel = other.m_NewDestinationLabel;
+    this->m_MergeMode = other.m_MergeMode;
+
+    return *this;
+  }
+
+  inline TOutputpixel operator()(const TDestinationPixel& existingDestinationValue, const TSourcePixel& existingSourceValue)
+  {
+    if (existingSourceValue == this->m_SourceLabel
+      && !this->m_DestinationLabelSet->GetLabel(existingDestinationValue)->GetLocked())
+    {
+      return this->m_NewDestinationLabel;
+    }
+    else if (!this->m_MergeMode
+      && existingSourceValue == this->m_SourceBackground
+      && existingDestinationValue == this->m_NewDestinationLabel
+      && !this->m_DestinationBackgroundLocked)
+    {
+      return this->m_DestinationBackground;
+    }
+
+    return existingDestinationValue;
+  }
+
+private:
+  const mitk::LabelSet* m_DestinationLabelSet = nullptr;
+  mitk::Label::PixelType m_SourceBackground = 0;
+  mitk::Label::PixelType m_DestinationBackground = 0;
+  bool m_DestinationBackgroundLocked = false;
+  mitk::Label::PixelType m_SourceLabel = 1;
+  mitk::Label::PixelType m_NewDestinationLabel = 1;
+  bool m_MergeMode = false;
+};
+
+/**Helper function used by TransferLabelContent to allow the templating over different image dimensions in conjunction of AccessFixedPixelTypeByItk_n.*/
+template<unsigned int VImageDimension>
+void TransferLabelContentHelper(const itk::Image<mitk::Label::PixelType, VImageDimension>* itkSourceImage, mitk::Image* destinationImage, const mitk::LabelSet* destinationLabelSet, mitk::Label::PixelType sourceBackground, mitk::Label::PixelType destinationBackground, bool destinationBackgroundLocked, mitk::Label::PixelType sourceLabel, mitk::Label::PixelType newDestinationLabel, bool mergeMode)
+{
+  typedef itk::Image<mitk::Label::PixelType, VImageDimension> ContentImageType;
+  typename ContentImageType::Pointer itkDestinationImage;
+  mitk::CastToItkImage(destinationImage, itkDestinationImage);
+
+  typedef LabelTransferFunctor <mitk::Label::PixelType, mitk::Label::PixelType, mitk::Label::PixelType> LabelTransferFunctorType;
+  typedef itk::BinaryFunctorImageFilter<ContentImageType, ContentImageType, ContentImageType, LabelTransferFunctorType> FilterType;
+
+  LabelTransferFunctorType transferFunctor(destinationLabelSet, sourceBackground, destinationBackground,
+    destinationBackgroundLocked, sourceLabel, newDestinationLabel, mergeMode);
+
+  auto transferFilter = FilterType::New();
+
+  transferFilter->SetFunctor(transferFunctor);
+  transferFilter->InPlaceOn();
+  transferFilter->SetInput1(itkDestinationImage);
+  transferFilter->SetInput2(itkSourceImage);
+
+  transferFilter->Update();
+}
+
+void mitk::AutoSegmentationWithPreviewTool::TransferLabelContent(
+  const LabelSetImage* sourceImage, LabelSetImage* destinationImage, std::vector<std::pair<Label::PixelType, Label::PixelType> > labelMapping, bool mergeMode, const TimeStepType timeStep)
+{
+  if (nullptr == sourceImage)
+  {
+    mitkThrow() << "Invalid call of TransferLabelContent; sourceImage must not be null.";
+  }
+  if (nullptr == destinationImage)
+  {
+    mitkThrow() << "Invalid call of TransferLabelContent; destinationImage must not be null.";
+  }
+
+  const auto sourceBackground = sourceImage->GetExteriorLabel()->GetValue();
+  const auto destinationBackground = destinationImage->GetExteriorLabel()->GetValue();
+  const auto destinationBackgroundLocked = destinationImage->GetExteriorLabel()->GetLocked();
+  const auto destinationLabelSet = destinationImage->GetLabelSet(destinationImage->GetActiveLayer());
+
+  Image::ConstPointer sourceImageAtTimeStep = this->GetImageByTimeStep(sourceImage, timeStep);
+  Image::Pointer destinationImageAtTimeStep = this->GetImageByTimeStep(destinationImage, timeStep);
+
+  if (nullptr == sourceImageAtTimeStep)
+  {
+    mitkThrow() << "Invalid call of TransferLabelContent; sourceImage does not have the requested time step: "<<timeStep;
+  }
+  if (nullptr == destinationImageAtTimeStep)
+  {
+    mitkThrow() << "Invalid call of TransferLabelContent; destinationImage does not have the requested time step: " << timeStep;
+  }
+
+  for (const auto& [sourceLabel, newDestinationLabel] : labelMapping)
+  {
+    if (!sourceImage->ExistLabel(sourceLabel, sourceImage->GetActiveLayer()))
+    {
+      mitkThrow() << "Invalid call of TransferLabelContent. Defined source label does not exist in sourceImage. SourceLabel: "<<sourceLabel;
+    }
+    if (!destinationImage->ExistLabel(newDestinationLabel, destinationImage->GetActiveLayer()))
+    {
+      mitkThrow() << "Invalid call of TransferLabelContent. Defined destination label does not exist in destinationImage. newDestinationLabel: " << newDestinationLabel;
+    }
+
+
+    AccessFixedPixelTypeByItk_n(sourceImageAtTimeStep, TransferLabelContentHelper, (Label::PixelType), (destinationImageAtTimeStep, destinationLabelSet, sourceBackground, destinationBackground, destinationBackgroundLocked, sourceLabel, newDestinationLabel, mergeMode));
+  }
+  destinationImage->Modified();
+}
