@@ -9,6 +9,10 @@ if(MITK_USE_Qt5)
     add_subdirectory(PluginGenerator)
   endif()]]
 
+  if(MITK_USE_CTK)
+    add_subdirectory(PluginGenerator)
+  endif()
+
   if(MITK_USE_BLUEBERRY)
 
     foreach(MITK_EXTENSION_DIR ${MITK_DIR_PLUS_EXTENSION_DIRS})

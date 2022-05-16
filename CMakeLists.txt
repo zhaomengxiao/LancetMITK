@@ -42,6 +42,21 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
+# Local External Project Option - Enabled by default
+#-----------------------------------------------------------------------------
+option(MITK_Local_EP "Use local ep path instead of downloading them. " ON)
+if(MITK_Local_EP)
+  message("Use local ep")
+  set(MITK_LOCAL_EP_PATH CACHE PATH "local ep path")
+  if(NOT MITK_LOCAL_EP_PATH)
+    message(FATAL_ERROR "not set path to local ep, Set or turn OFF option MITK_Local_EP")
+  else()
+    string(CONCAT url "file:///" ${MITK_LOCAL_EP_PATH})
+    set(MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL ${url} CACHE PATH "")
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # MITK Extension Feature
 #-----------------------------------------------------------------------------
 
@@ -169,6 +184,13 @@ set(CMAKE_CXX_EXTENSIONS 0)
 set(CMAKE_CXX_STANDARD ${MITK_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED 1)
 
+#disable 4819 msvc warning
+if(MSVC)
+  add_compile_options(/wd4819)
+endif()
+
+
+
 # This is necessary to avoid problems with compile feature checks.
 # CMAKE_CXX_STANDARD seems to only set the -std=c++<std> flag for targets.
 # However, compile flag checks also need to be done with -std=c++<std>.
@@ -210,7 +232,7 @@ endif()
 # General build options
 option(BUILD_SHARED_LIBS "Build MITK with shared libraries" ON)
 option(WITH_COVERAGE "Enable/Disable coverage" OFF)
-option(BUILD_TESTING "Test the project" ON)
+option(BUILD_TESTING "Test the project" OFF)
 option(MITK_FAST_TESTING "Disable long-running tests like packaging" OFF)
 option(MITK_XVFB_TESTING "Execute test drivers through xvfb-run" OFF)
 
@@ -281,7 +303,8 @@ foreach(MITK_EXTENSION_DIR ${MITK_ABSOLUTE_EXTENSION_DIRS})
   list(REMOVE_DUPLICATES _buildConfigs)
 endforeach()
 
-set(MITK_BUILD_CONFIGURATION "Custom" CACHE STRING "Use pre-defined MITK configurations")
+#set(MITK_BUILD_CONFIGURATION "Custom" CACHE STRING "Use pre-defined MITK configurations")
+set(MITK_BUILD_CONFIGURATION "LancetRelease" CACHE STRING "Use pre-defined lancet configurations")
 set_property(CACHE MITK_BUILD_CONFIGURATION PROPERTY STRINGS ${_buildConfigs})
 
 mitkFunctionEnableBuildConfiguration()
