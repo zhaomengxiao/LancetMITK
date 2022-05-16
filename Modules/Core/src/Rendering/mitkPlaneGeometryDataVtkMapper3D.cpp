@@ -15,6 +15,7 @@ found in the LICENSE file.
 #include "mitkImageVtkMapper2D.h"
 #include "mitkNodePredicateDataType.h"
 #include "mitkNodePredicateOr.h"
+#include "mitkPointSetVtkMapper3D.h"
 #include "mitkSmartPointerProperty.h"
 #include "mitkSurface.h"
 #include "mitkVtkRepresentationProperty.h"
@@ -37,7 +38,8 @@ found in the LICENSE file.
 
 namespace mitk
 {
-  PlaneGeometryDataVtkMapper3D::PlaneGeometryDataVtkMapper3D() : m_NormalsActorAdded(false), m_DataStorage(nullptr)
+  mitk::PlaneGeometryDataVtkMapper3D::LocalStorage::LocalStorage()
+    : m_NormalsActorAdded(false)     
   {
     m_EdgeTuber = vtkTubeFilter::New();
     m_EdgeMapper = vtkPolyDataMapper::New();
@@ -117,10 +119,26 @@ namespace mitk
     m_BackNormalsActor->SetMapper(m_BackNormalsMapper);
 
     m_ImageMapperDeletedCommand = MemberCommandType::New();
-    m_ImageMapperDeletedCommand->SetCallbackFunction(this, &PlaneGeometryDataVtkMapper3D::ImageMapperDeletedCallback);
+    m_ImageMapperDeletedCommand->SetCallbackFunction(this, &LocalStorage::ImageMapperDeletedCallback);
   }
 
-  PlaneGeometryDataVtkMapper3D::~PlaneGeometryDataVtkMapper3D()
+  void mitk::PlaneGeometryDataVtkMapper3D::LocalStorage::ImageMapperDeletedCallback(
+    itk::Object *caller,
+    const itk::EventObject & /*event*/)
+  {
+    auto *imageMapper = dynamic_cast<ImageVtkMapper2D *>(caller);
+    if ((imageMapper != nullptr))
+    {
+      if (m_ImageActors.count(imageMapper) > 0)
+      {
+        m_ImageActors[imageMapper].m_Sender = nullptr; // sender is already destroying itself
+        m_ImageActors.erase(imageMapper);
+      }
+    }
+  }
+
+  // destructor LocalStorage
+  mitk::PlaneGeometryDataVtkMapper3D::LocalStorage::~LocalStorage()
   {
     m_ImageAssembly->Delete();
     m_Prop3DAssembly->Delete();
@@ -146,25 +164,37 @@ namespace mitk
     // Delete entries in m_ImageActors list one by one
     m_ImageActors.clear();
 
-    m_DataStorage = nullptr;
+
   }
 
-  vtkProp *PlaneGeometryDataVtkMapper3D::GetVtkProp(mitk::BaseRenderer * /*renderer*/)
+  PlaneGeometryDataVtkMapper3D::PlaneGeometryDataVtkMapper3D()
+    :m_DataStorage(nullptr)
   {
-    if ((this->GetDataNode() != nullptr) && (m_ImageAssembly != nullptr))
+  }
+
+  PlaneGeometryDataVtkMapper3D::~PlaneGeometryDataVtkMapper3D()
+  {
+      m_DataStorage = nullptr;
+  }
+
+  vtkProp *PlaneGeometryDataVtkMapper3D::GetVtkProp(mitk::BaseRenderer *renderer)
+  {
+    LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+    if ((this->GetDataNode() != nullptr) && (ls->m_ImageAssembly != nullptr))
     {
       // Do not transform the entire Prop3D assembly, but only the image part
       // here. The colored frame is transformed elsewhere (via m_EdgeTransformer),
       // since only vertices should be transformed there, not the poly data
       // itself, to avoid distortion for anisotropic datasets.
-      m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform());
+      ls->m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform());
     }
-    return m_Prop3DAssembly;
+    return ls->m_Prop3DAssembly;
   }
 
-  void PlaneGeometryDataVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer * /*renderer*/)
+  void PlaneGeometryDataVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer *renderer)
   {
-    m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
+    LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+    ls->m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
   }
 
   const PlaneGeometryData *PlaneGeometryDataVtkMapper3D::GetInput()
@@ -181,24 +211,13 @@ namespace mitk
     }
   }
 
-  void PlaneGeometryDataVtkMapper3D::ImageMapperDeletedCallback(itk::Object *caller, const itk::EventObject & /*event*/)
-  {
-    auto *imageMapper = dynamic_cast<ImageVtkMapper2D *>(caller);
-    if ((imageMapper != nullptr))
-    {
-      if (m_ImageActors.count(imageMapper) > 0)
-      {
-        m_ImageActors[imageMapper].m_Sender = nullptr; // sender is already destroying itself
-        m_ImageActors.erase(imageMapper);
-      }
-    }
-  }
 
   void PlaneGeometryDataVtkMapper3D::GenerateDataForRenderer(BaseRenderer *renderer)
   {
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
     // Remove all actors from the assembly, and re-initialize it with the
     // edge actor
-    m_ImageAssembly->GetParts()->RemoveAllItems();
+    ls->m_ImageAssembly->GetParts()->RemoveAllItems();
 
     bool visible = true;
     GetDataNode()->GetVisibility(visible, renderer, "visible");
@@ -211,8 +230,8 @@ namespace mitk
       // references to the assemblies parts. During picking the
       // visibility of each part is checked, and not only for the
       // whole assembly.
-      m_ImageAssembly->VisibilityOff();
-      m_EdgeActor->VisibilityOff();
+      ls->m_ImageAssembly->VisibilityOff();
+      ls->m_EdgeActor->VisibilityOff();
       return;
     }
 
@@ -222,10 +241,10 @@ namespace mitk
     // references to the assemblies parts. During picking the
     // visibility of each part is checked, and not only for the
     // whole assembly.
-    m_ImageAssembly->VisibilityOn();
+    ls->m_ImageAssembly->VisibilityOn();
     bool drawEdges = true;
     this->GetDataNode()->GetBoolProperty("draw edges", drawEdges, renderer);
-    m_EdgeActor->SetVisibility(drawEdges);
+    ls->m_EdgeActor->SetVisibility(drawEdges);
 
     PlaneGeometryData::ConstPointer input = this->GetInput();
 
@@ -236,25 +255,25 @@ namespace mitk
         dynamic_cast<SmartPointerProperty *>(GetDataNode()->GetProperty("surfacegeometry", renderer));
 
       if ((surfacecreatorprop.IsNull()) || (surfacecreatorprop->GetSmartPointer().IsNull()) ||
-          ((m_SurfaceCreator =
-              dynamic_cast<PlaneGeometryDataToSurfaceFilter *>(surfacecreatorprop->GetSmartPointer().GetPointer()))
-             .IsNull()))
+          ((ls->m_SurfaceCreator =
+            dynamic_cast<PlaneGeometryDataToSurfaceFilter *>(surfacecreatorprop->GetSmartPointer().GetPointer()))
+            .IsNull()))
       {
-        m_SurfaceCreator->PlaceByGeometryOn();
-        surfacecreatorprop = SmartPointerProperty::New(m_SurfaceCreator);
+        ls->m_SurfaceCreator->PlaceByGeometryOn();
+        surfacecreatorprop = SmartPointerProperty::New(ls->m_SurfaceCreator);
         GetDataNode()->SetProperty("surfacegeometry", surfacecreatorprop);
       }
 
-      m_SurfaceCreator->SetInput(input);
+      ls->m_SurfaceCreator->SetInput(input);
 
       int res;
       if (GetDataNode()->GetIntProperty("xresolution", res, renderer))
       {
-        m_SurfaceCreator->SetXResolution(res);
+        ls->m_SurfaceCreator->SetXResolution(res);
       }
       if (GetDataNode()->GetIntProperty("yresolution", res, renderer))
       {
-        m_SurfaceCreator->SetYResolution(res);
+        ls->m_SurfaceCreator->SetYResolution(res);
       }
 
       double tubeRadius = 1.0; // Radius of tubular edge surrounding plane
@@ -277,32 +296,33 @@ namespace mitk
           }
         }
 
-        m_SurfaceCreatorPointsContainer->CreateElementAt(0) = boundingBoxMin;
-        m_SurfaceCreatorPointsContainer->CreateElementAt(1) = boundingBoxMax;
+        ls->m_SurfaceCreatorPointsContainer->CreateElementAt(0) = boundingBoxMin;
+        ls->m_SurfaceCreatorPointsContainer->CreateElementAt(1) = boundingBoxMax;
 
-        m_SurfaceCreatorBoundingBox->ComputeBoundingBox();
+        ls->m_SurfaceCreatorBoundingBox->ComputeBoundingBox();
 
-        m_SurfaceCreator->SetBoundingBox(m_SurfaceCreatorBoundingBox);
+        ls->m_SurfaceCreator->SetBoundingBox(ls->m_SurfaceCreatorBoundingBox);
 
         tubeRadius = referenceGeometry->GetDiagonalLength() / 450.0;
       }
 
-      // If no reference geometry is available, clip with the current global
-      // bounds
+        // If no reference geometry is available, clip with the current global
+        // bounds
       else if (!m_DataStorage.IsExpired())
       {
-        m_SurfaceCreator->SetBoundingBox(m_DataStorage.Lock()->ComputeVisibleBoundingBox(nullptr, "includeInBoundingBox"));
-        tubeRadius = sqrt(m_SurfaceCreator->GetBoundingBox()->GetDiagonalLength2()) / 450.0;
+        ls->m_SurfaceCreator->SetBoundingBox(
+          m_DataStorage.Lock()->ComputeVisibleBoundingBox(nullptr, "includeInBoundingBox"));
+        tubeRadius = sqrt(ls->m_SurfaceCreator->GetBoundingBox()->GetDiagonalLength2()) / 450.0;
       }
 
       // Calculate the surface of the PlaneGeometry
-      m_SurfaceCreator->Update();
-      Surface *surface = m_SurfaceCreator->GetOutput();
+      ls->m_SurfaceCreator->Update();
+      Surface *surface = ls->m_SurfaceCreator->GetOutput();
 
       // Check if there's something to display, otherwise return
       if ((surface->GetVtkPolyData() == nullptr) || (surface->GetVtkPolyData()->GetNumberOfCells() == 0))
       {
-        m_ImageAssembly->VisibilityOff();
+        ls->m_ImageAssembly->VisibilityOff();
         return;
       }
 
@@ -326,57 +346,57 @@ namespace mitk
 
         if (displayNormals)
         {
-          m_NormalsTransformer->SetInputData(surface->GetVtkPolyData());
-          m_NormalsTransformer->SetTransform(node->GetVtkTransform(this->GetTimestep()));
+          ls->m_NormalsTransformer->SetInputData(surface->GetVtkPolyData());
+          ls->m_NormalsTransformer->SetTransform(node->GetVtkTransform(this->GetTimestep()));
 
-          m_FrontHedgeHog->SetInputConnection(m_NormalsTransformer->GetOutputPort());
-          m_FrontHedgeHog->SetVectorModeToUseNormal();
-          m_FrontHedgeHog->SetScaleFactor(invertNormals ? 1.0 : -1.0);
-          m_FrontHedgeHog->Update();
+          ls->m_FrontHedgeHog->SetInputConnection(ls->m_NormalsTransformer->GetOutputPort());
+          ls->m_FrontHedgeHog->SetVectorModeToUseNormal();
+          ls->m_FrontHedgeHog->SetScaleFactor(invertNormals ? 1.0 : -1.0);
+          ls->m_FrontHedgeHog->Update();
 
-          m_FrontNormalsActor->GetProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
+          ls->m_FrontNormalsActor->GetProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
 
-          m_BackHedgeHog->SetInputConnection(m_NormalsTransformer->GetOutputPort());
-          m_BackHedgeHog->SetVectorModeToUseNormal();
-          m_BackHedgeHog->SetScaleFactor(invertNormals ? -1.0 : 1.0);
-          m_BackHedgeHog->Update();
+          ls->m_BackHedgeHog->SetInputConnection(ls->m_NormalsTransformer->GetOutputPort());
+          ls->m_BackHedgeHog->SetVectorModeToUseNormal();
+          ls->m_BackHedgeHog->SetScaleFactor(invertNormals ? -1.0 : 1.0);
+          ls->m_BackHedgeHog->Update();
 
-          m_BackNormalsActor->GetProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
+          ls->m_BackNormalsActor->GetProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
 
           // if there is no actor added yet, add one
-          if (!m_NormalsActorAdded)
+          if (!ls->m_NormalsActorAdded)
           {
-            m_Prop3DAssembly->AddPart(m_FrontNormalsActor);
-            m_Prop3DAssembly->AddPart(m_BackNormalsActor);
-            m_NormalsActorAdded = true;
+            ls->m_Prop3DAssembly->AddPart(ls->m_FrontNormalsActor);
+            ls->m_Prop3DAssembly->AddPart(ls->m_BackNormalsActor);
+            ls->m_NormalsActorAdded = true;
           }
         }
-        // if we don't want to display normals AND there is an actor added remove the actor
-        else if (m_NormalsActorAdded)
+          // if we don't want to display normals AND there is an actor added remove the actor
+        else if (ls->m_NormalsActorAdded)
         {
-          m_Prop3DAssembly->RemovePart(m_FrontNormalsActor);
-          m_Prop3DAssembly->RemovePart(m_BackNormalsActor);
-          m_NormalsActorAdded = false;
+          ls->m_Prop3DAssembly->RemovePart(ls->m_FrontNormalsActor);
+          ls->m_Prop3DAssembly->RemovePart(ls->m_BackNormalsActor);
+          ls->m_NormalsActorAdded = false;
         }
 
         if (colorTwoSides)
         {
           if (!invertNormals)
           {
-            m_BackgroundActor->GetProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
-            m_BackgroundActor->GetBackfaceProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
+            ls->m_BackgroundActor->GetProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
+            ls->m_BackgroundActor->GetBackfaceProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
           }
           else
           {
-            m_BackgroundActor->GetProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
-            m_BackgroundActor->GetBackfaceProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
+            ls->m_BackgroundActor->GetProperty()->SetColor(frontColor[0], frontColor[1], frontColor[2]);
+            ls->m_BackgroundActor->GetBackfaceProperty()->SetColor(backColor[0], backColor[1], backColor[2]);
           }
         }
       }
 
       // Add black background for all images (which may be transparent)
-      m_BackgroundMapper->SetInputData(surface->GetVtkPolyData());
-      //      m_ImageAssembly->AddPart(m_BackgroundActor);
+      ls->m_BackgroundMapper->SetInputData(surface->GetVtkPolyData());
+      //      ls->m_ImageAssembly->AddPart(ls->m_BackgroundActor);
 
       LayerSortedActorList layerSortedActors;
 
@@ -384,6 +404,11 @@ namespace mitk
       // use a predicate to get all data nodes which are "images" or inherit from mitk::Image
       mitk::TNodePredicateDataType<mitk::Image>::Pointer predicateAllImages =
         mitk::TNodePredicateDataType<mitk::Image>::New();
+      if(m_DataStorage.Lock() == nullptr)
+      {
+          MITK_ERROR << "m_DataStorage null";
+          return;
+      }
       mitk::DataStorage::SetOfObjects::ConstPointer all = m_DataStorage.Lock()->GetSubset(predicateAllImages);
       // process all found images
       for (mitk::DataStorage::SetOfObjects::ConstIterator it = all->Begin(); it != all->End(); ++it)
@@ -398,17 +423,17 @@ namespace mitk
       LayerSortedActorList::iterator actorIt;
       for (actorIt = layerSortedActors.begin(); actorIt != layerSortedActors.end(); ++actorIt)
       {
-        m_ImageAssembly->AddPart(actorIt->second);
+        ls->m_ImageAssembly->AddPart(actorIt->second);
       }
 
       // Configurate the tube-shaped frame: size according to the surface
       // bounds, color as specified in the plane's properties
       vtkPolyData *surfacePolyData = surface->GetVtkPolyData();
-      m_Cleaner->SetInputData(surfacePolyData);
-      m_EdgeTransformer->SetTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
+      ls->m_Cleaner->SetInputData(surfacePolyData);
+      ls->m_EdgeTransformer->SetTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
 
       // Adjust the radius according to extent
-      m_EdgeTuber->SetRadius(tubeRadius);
+      ls->m_EdgeTuber->SetRadius(tubeRadius);
 
       // Get the plane's color and set the tube properties accordingly
       ColorProperty::Pointer colorProperty;
@@ -416,20 +441,20 @@ namespace mitk
       if (colorProperty.IsNotNull())
       {
         const Color &color = colorProperty->GetColor();
-        m_EdgeActor->GetProperty()->SetColor(color.GetRed(), color.GetGreen(), color.GetBlue());
+        ls->m_EdgeActor->GetProperty()->SetColor(color.GetRed(), color.GetGreen(), color.GetBlue());
       }
       else
       {
-        m_EdgeActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+        ls->m_EdgeActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
       }
 
-      m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
+      ls->m_ImageAssembly->SetUserTransform(this->GetDataNode()->GetVtkTransform(this->GetTimestep()));
     }
 
     VtkRepresentationProperty *representationProperty;
     this->GetDataNode()->GetProperty(representationProperty, "material.representation", renderer);
     if (representationProperty != nullptr)
-      m_BackgroundActor->GetProperty()->SetRepresentation(representationProperty->GetVtkRepresentation());
+      ls->m_BackgroundActor->GetProperty()->SetRepresentation(representationProperty->GetVtkRepresentation());
   }
 
   void PlaneGeometryDataVtkMapper3D::ProcessNode(DataNode *node,
@@ -437,6 +462,7 @@ namespace mitk
                                                  Surface *surface,
                                                  LayerSortedActorList &layerSortedActors)
   {
+      LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
     if (node != nullptr)
     {
       // we need to get the information from the 2D mapper to render the texture on the 3D plane
@@ -445,7 +471,8 @@ namespace mitk
 
       // if there is a 2D mapper, which is not the standard image mapper...
       if (!imageMapper && node->GetMapper(1))
-      { //... check if it is the composite mapper
+      {
+        //... check if it is the composite mapper
         std::string cname(node->GetMapper(1)->GetNameOfClass());
         if (!cname.compare("CompositeMapper")) // string.compare returns 0 if the two strings are equal.
         {
@@ -479,7 +506,7 @@ namespace mitk
             vtkActor *imageActor;
             vtkDataSetMapper *dataSetMapper = nullptr;
             vtkTexture *texture;
-            if (m_ImageActors.count(imageMapper) == 0)
+            if (ls->m_ImageActors.count(imageMapper) == 0)
             {
               dataSetMapper = vtkDataSetMapper::New();
 
@@ -491,7 +518,7 @@ namespace mitk
               imageActor->SetTexture(texture);
               imageActor->GetProperty()->SetOpacity(
                 0.999); // HACK! otherwise VTK wouldn't recognize this as translucent
-                        // surface (if LUT values map to alpha < 255
+              // surface (if LUT values map to alpha < 255
               // improvement: apply "opacity" property onle HERE and also in 2D image mapper. DO NOT change LUT to
               // achieve
               // translucent images (see method ChangeOpacity in image mapper 2D)
@@ -503,13 +530,13 @@ namespace mitk
 
               // Store the actor so that it may be accessed in following
               // passes.
-              m_ImageActors[imageMapper].Initialize(imageActor, imageMapper, m_ImageMapperDeletedCommand);
+              ls->m_ImageActors[imageMapper].Initialize(imageActor, imageMapper, ls->m_ImageMapperDeletedCommand);
             }
             else
             {
               // Else, retrieve the actor and associated objects from the
               // previous pass.
-              imageActor = m_ImageActors[imageMapper].m_Actor;
+              imageActor = ls->m_ImageActors[imageMapper].m_Actor;
               dataSetMapper = (vtkDataSetMapper *)imageActor->GetMapper();
               texture = imageActor->GetTexture();
             }
@@ -535,11 +562,11 @@ namespace mitk
               // do not use a VTK lookup table (we do that ourselves in m_LevelWindowFilter)
               texture->SetColorModeToDirectScalars();
 
-              auto* property3d = imageActor->GetProperty();
+              auto *property3d = imageActor->GetProperty();
               property3d->LightingOff();
 
               // re-use properties from the 2D image mapper
-              auto* property2d = localStorage->m_ImageActor->GetProperty();
+              auto *property2d = localStorage->m_ImageActor->GetProperty();
               property3d->SetColor(property2d->GetColor());
               property3d->SetOpacity(property2d->GetOpacity());
 
@@ -568,7 +595,13 @@ namespace mitk
     m_ObserverID = sender->AddObserver(itk::DeleteEvent(), command);
   }
 
-  PlaneGeometryDataVtkMapper3D::ActorInfo::ActorInfo() : m_Actor(nullptr), m_Sender(nullptr), m_ObserverID(0) {}
+  PlaneGeometryDataVtkMapper3D::ActorInfo::ActorInfo()
+    : m_Actor(nullptr),
+      m_Sender(nullptr),
+      m_ObserverID(0)
+  {
+  }
+
   PlaneGeometryDataVtkMapper3D::ActorInfo::~ActorInfo()
   {
     if (m_Sender != nullptr)

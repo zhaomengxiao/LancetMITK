@@ -52,55 +52,56 @@ void mitk::SplineVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer * /*renderer
 
 void mitk::SplineVtkMapper3D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
 {
-  BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
-
-  // only update spline if UpdateSpline has not been called from
-  // external, e.g. by the SplineMapper2D. But call it the first time when m_SplineUpdateTime = 0 and m_LastUpdateTime =
-  // 0.
-  if (m_SplineUpdateTime < ls->GetLastGenerateDataTime() || m_SplineUpdateTime == 0)
-  {
-    this->UpdateSpline();
-    this->ApplyAllProperties(renderer, m_SplinesActor);
-  }
-
-  if (m_SplinesAvailable)
-  {
-    if (!m_SplinesAddedToAssembly)
-    {
-      m_SplineAssembly->AddPart(m_SplinesActor);
-      m_SplinesAddedToAssembly = true;
-    }
-  }
-  else
-  {
-    if (m_SplinesAddedToAssembly)
-    {
-      m_SplineAssembly->RemovePart(m_SplinesActor);
-      m_SplinesAddedToAssembly = false;
-    }
-  }
-
-  bool visible = true;
-  GetDataNode()->GetVisibility(visible, renderer, "visible");
-
-  if (!visible)
-  {
-    m_SplinesActor->VisibilityOff();
-    m_SplineAssembly->VisibilityOff();
-  }
-  else
-  {
-    m_SplinesActor->VisibilityOn();
-    m_SplineAssembly->VisibilityOn();
-
-    // remove the PointsAssembly if it was added in superclass. No need to display points and spline!
-    if (m_SplineAssembly->GetParts()->IsItemPresent(m_PointsAssembly))
-      m_SplineAssembly->RemovePart(m_PointsAssembly);
-  }
-  // if the properties have been changed, then refresh the properties
-  if ((m_SplineUpdateTime < this->m_DataNode->GetPropertyList()->GetMTime()) ||
-      (m_SplineUpdateTime < this->m_DataNode->GetPropertyList(renderer)->GetMTime()))
-    this->ApplyAllProperties(renderer, m_SplinesActor);
+  //TODO not working because multi 3D support,fix later
+  // BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  //
+  // // only update spline if UpdateSpline has not been called from
+  // // external, e.g. by the SplineMapper2D. But call it the first time when m_SplineUpdateTime = 0 and m_LastUpdateTime =
+  // // 0.
+  // if (m_SplineUpdateTime < ls->GetLastGenerateDataTime() || m_SplineUpdateTime == 0)
+  // {
+  //   this->UpdateSpline();
+  //   this->ApplyAllProperties(renderer, m_SplinesActor);
+  // }
+  //
+  // if (m_SplinesAvailable)
+  // {
+  //   if (!m_SplinesAddedToAssembly)
+  //   {
+  //     m_SplineAssembly->AddPart(m_SplinesActor);
+  //     m_SplinesAddedToAssembly = true;
+  //   }
+  // }
+  // else
+  // {
+  //   if (m_SplinesAddedToAssembly)
+  //   {
+  //     m_SplineAssembly->RemovePart(m_SplinesActor);
+  //     m_SplinesAddedToAssembly = false;
+  //   }
+  // }
+  //
+  // bool visible = true;
+  // GetDataNode()->GetVisibility(visible, renderer, "visible");
+  //
+  // if (!visible)
+  // {
+  //   m_SplinesActor->VisibilityOff();
+  //   m_SplineAssembly->VisibilityOff();
+  // }
+  // else
+  // {
+  //   m_SplinesActor->VisibilityOn();
+  //   m_SplineAssembly->VisibilityOn();
+  //
+  //   // remove the PointsAssembly if it was added in superclass. No need to display points and spline!
+  //   if (m_SplineAssembly->GetParts()->IsItemPresent(m_PointsAssembly))
+  //     m_SplineAssembly->RemovePart(m_PointsAssembly);
+  // }
+  // // if the properties have been changed, then refresh the properties
+  // if ((m_SplineUpdateTime < this->m_DataNode->GetPropertyList()->GetMTime()) ||
+  //     (m_SplineUpdateTime < this->m_DataNode->GetPropertyList(renderer)->GetMTime()))
+  //   this->ApplyAllProperties(renderer, m_SplinesActor);
 }
 
 void mitk::SplineVtkMapper3D::ApplyAllProperties(BaseRenderer *renderer, vtkActor *actor)

@@ -39,66 +39,102 @@ found in the LICENSE file.
 #include <mitkPropertyObserver.h>
 #include <vtk_glew.h>
 
+// constructor LocalStorage
+mitk::PointSetVtkMapper3D::LocalStorage::LocalStorage()
+  : m_NumberOfSelectedAdded(0),
+    m_NumberOfUnselectedAdded(0),
+    m_NumberOfMarkedAdded(0),
+    m_NumberOfHidedAdded(0)
+{
+  /// All point positions, already in world coordinates
+  m_WorldPositions = vtkSmartPointer<vtkPoints>::New();
+  /// All connections between two points (used for contour drawing)
+  m_PointConnections = vtkSmartPointer<vtkCellArray>::New(); // m_PointConnections between points
+
+  m_vtkSelectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  m_vtkUnselectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  m_vtkHidedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  m_vtkMarkedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+
+  m_VtkSelectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_VtkUnselectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_VtkHidedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_VtkMarkedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+  // creating actors to be able to set transform
+  m_SelectedActor = vtkSmartPointer<vtkActor>::New();
+  m_UnselectedActor = vtkSmartPointer<vtkActor>::New();
+  m_HidedActor = vtkSmartPointer<vtkActor>::New();
+  m_MarkedActor = vtkSmartPointer<vtkActor>::New();
+  m_ContourActor = vtkSmartPointer<vtkActor>::New();
+
+  // propassembly
+  m_PointsAssembly = vtkSmartPointer<vtkPropAssembly>::New();
+}
+
+// destructor LocalStorage
+mitk::PointSetVtkMapper3D::LocalStorage::~LocalStorage()
+{
+}
+
+
 const mitk::PointSet *mitk::PointSetVtkMapper3D::GetInput()
 {
   return static_cast<const mitk::PointSet *>(GetDataNode()->GetData());
 }
 
 mitk::PointSetVtkMapper3D::PointSetVtkMapper3D()
-  : m_vtkSelectedPointList(nullptr),
-    m_vtkUnselectedPointList(nullptr),
-    m_VtkSelectedPolyDataMapper(nullptr),
-    m_VtkUnselectedPolyDataMapper(nullptr),
+    : 
     m_vtkTextList(nullptr),
-    m_NumberOfSelectedAdded(0),
-    m_NumberOfUnselectedAdded(0),
     m_PointSize(1.0),
     m_ContourRadius(0.5)
 {
-  // propassembly
-  m_PointsAssembly = vtkSmartPointer<vtkPropAssembly>::New();
-
-  // creating actors to be able to set transform
-  m_SelectedActor = vtkSmartPointer<vtkActor>::New();
-  m_UnselectedActor = vtkSmartPointer<vtkActor>::New();
-  m_ContourActor = vtkSmartPointer<vtkActor>::New();
 }
 
 mitk::PointSetVtkMapper3D::~PointSetVtkMapper3D()
 {
 }
 
-void mitk::PointSetVtkMapper3D::ReleaseGraphicsResources(vtkWindow *renWin)
-{
-  m_PointsAssembly->ReleaseGraphicsResources(renWin);
-
-  m_SelectedActor->ReleaseGraphicsResources(renWin);
-  m_UnselectedActor->ReleaseGraphicsResources(renWin);
-  m_ContourActor->ReleaseGraphicsResources(renWin);
-}
+//void mitk::PointSetVtkMapper3D::ReleaseGraphicsResources(vtkWindow *renWin)
+//{
+//  ls->m_PointsAssembly->ReleaseGraphicsResources(renWin);
+//
+//  ls->m_SelectedActor->ReleaseGraphicsResources(renWin);
+//  ls->m_UnselectedActor->ReleaseGraphicsResources(renWin);
+//  ls->m_ContourActor->ReleaseGraphicsResources(renWin);
+//  ls->m_HidedActor->ReleaseGraphicsResources(renWin);
+//  ls->m_MarkedActor->ReleaseGraphicsResources(renWin);
+//}
 
 void mitk::PointSetVtkMapper3D::ReleaseGraphicsResources(mitk::BaseRenderer *renderer)
 {
-  m_PointsAssembly->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
+    ls->m_PointsAssembly->ReleaseGraphicsResources(renderer->GetRenderWindow());
 
-  m_SelectedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
-  m_UnselectedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
-  m_ContourActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    ls->m_SelectedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    ls->m_UnselectedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    ls->m_MarkedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    ls->m_HidedActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
+    ls->m_ContourActor->ReleaseGraphicsResources(renderer->GetRenderWindow());
 }
 
-void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
+void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects(mitk::BaseRenderer* renderer)
 {
-  m_vtkSelectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
-  m_vtkUnselectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
+    ls->m_PointsAssembly->VisibilityOn();
 
-  m_PointsAssembly->VisibilityOn();
+  ls->m_PointsAssembly->VisibilityOn();
 
-  if (m_PointsAssembly->GetParts()->IsItemPresent(m_SelectedActor))
-    m_PointsAssembly->RemovePart(m_SelectedActor);
-  if (m_PointsAssembly->GetParts()->IsItemPresent(m_UnselectedActor))
-    m_PointsAssembly->RemovePart(m_UnselectedActor);
-  if (m_PointsAssembly->GetParts()->IsItemPresent(m_ContourActor))
-    m_PointsAssembly->RemovePart(m_ContourActor);
+  if (ls->m_PointsAssembly->GetParts()->IsItemPresent(ls->m_SelectedActor))
+    ls->m_PointsAssembly->RemovePart(ls->m_SelectedActor);
+  if (ls->m_PointsAssembly->GetParts()->IsItemPresent(ls->m_UnselectedActor))
+    ls->m_PointsAssembly->RemovePart(ls->m_UnselectedActor);
+  if (ls->m_PointsAssembly->GetParts()->IsItemPresent(ls->m_ContourActor))
+    ls->m_PointsAssembly->RemovePart(ls->m_ContourActor);
+  if (ls->m_PointsAssembly->GetParts()->IsItemPresent(ls->m_HidedActor))
+      ls->m_PointsAssembly->RemovePart(ls->m_HidedActor);
+  if (ls->m_PointsAssembly->GetParts()->IsItemPresent(ls->m_MarkedActor))
+      ls->m_PointsAssembly->RemovePart(ls->m_MarkedActor);
 
   // exceptional displaying for PositionTracker -> MouseOrientationTool
   int mapperID;
@@ -109,6 +145,10 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
       return; // The event for the PositionTracker came from the 3d widget and  not needs to be displayed
   }
 
+  ls->m_vtkSelectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  ls->m_vtkUnselectedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  ls->m_vtkMarkedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
+  ls->m_vtkHidedPointList = vtkSmartPointer<vtkAppendPolyData>::New();
   // get and update the PointSet
   mitk::PointSet::Pointer input = const_cast<mitk::PointSet *>(this->GetInput());
 
@@ -124,7 +164,7 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
 
   if (itkPointSet.GetPointer() == nullptr)
   {
-    m_PointsAssembly->VisibilityOff();
+    ls->m_PointsAssembly->VisibilityOff();
     return;
   }
 
@@ -169,11 +209,13 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
   mitk::PointSet::PointsContainer::Iterator pointsIter;
   int ptIdx;
 
-  m_NumberOfSelectedAdded = 0;
-  m_NumberOfUnselectedAdded = 0;
+  ls->m_NumberOfSelectedAdded = 0;
+  ls->m_NumberOfUnselectedAdded = 0;
+  ls->m_NumberOfHidedAdded = 0;
+  ls->m_NumberOfMarkedAdded = 0;
   vtkSmartPointer<vtkPoints> localPoints = vtkSmartPointer<vtkPoints>::New();
-  m_WorldPositions = vtkSmartPointer<vtkPoints>::New();
-  m_PointConnections = vtkSmartPointer<vtkCellArray>::New(); // m_PointConnections between points
+  ls->m_WorldPositions = vtkSmartPointer<vtkPoints>::New();
+  ls->m_PointConnections = vtkSmartPointer<vtkCellArray>::New(); // m_PointConnections between points
   for (ptIdx = 0, pointsIter = itkPointSet->GetPoints()->Begin(); pointsIter != itkPointSet->GetPoints()->End();
        pointsIter++, ptIdx++)
   {
@@ -183,17 +225,17 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
     if (makeContour && ptIdx < contourPointLimit)
     {
       vtkIdType cell[2] = {(ptIdx + 1) % nbPoints, ptIdx};
-      m_PointConnections->InsertNextCell(2, cell);
+      ls->m_PointConnections->InsertNextCell(2, cell);
     }
   }
 
   vtkSmartPointer<vtkLinearTransform> vtktransform = this->GetDataNode()->GetVtkTransform(this->GetTimestep());
-  vtktransform->TransformPoints(localPoints, m_WorldPositions);
+  vtktransform->TransformPoints(localPoints, ls->m_WorldPositions);
 
   // create contour
   if (makeContour)
   {
-    this->CreateContour(m_WorldPositions, m_PointConnections);
+      this->CreateContour(ls->m_WorldPositions, ls->m_PointConnections, renderer);
   }
 
   // check if the list for the PointDataContainer is the same size as the PointsContainer. Is not, then the points were
@@ -205,7 +247,7 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
   for (ptIdx = 0; ptIdx < nbPoints; ++ptIdx) // pointDataIter moved at end of loop
   {
     double currentPoint[3];
-    m_WorldPositions->GetPoint(ptIdx, currentPoint);
+    ls->m_WorldPositions->GetPoint(ptIdx, currentPoint);
     vtkSmartPointer<vtkPolyDataAlgorithm> source;
 
     // check for the pointtype in data and decide which geom-object to take and then add to the selected or unselected
@@ -278,6 +320,36 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
         source = sphere;
       }
       break;
+
+      // case PBIG:
+      // {
+      //     vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+      //     sphere->SetRadius((m_PointSize+1) / 2.0f);
+      //     sphere->SetCenter(currentPoint);
+      //     sphere->SetThetaResolution(20);
+      //     sphere->SetPhiResolution(20);
+      //     source = sphere;
+      // }
+      // break;
+      // case PSMALL:
+      // {
+      //     vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+      //     ScalarType pointsize = 1;
+      //     if (m_PointSize>1)
+      //     {
+      //         pointsize = m_PointSize - 1;
+      //     }
+      //     else
+      //     {
+      //         pointsize = m_PointSize;
+      //     }
+      //     sphere->SetRadius(pointsize / 2.0f);
+      //     sphere->SetCenter(currentPoint);
+      //     sphere->SetThetaResolution(20);
+      //     sphere->SetPhiResolution(20);
+      //     source = sphere;
+      // }
+      //break;
       default:
       {
         vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
@@ -289,16 +361,26 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
       }
       break;
     }
-
+   
     if (pointDataIter.Value().selected && !pointDataBroken)
     {
-      m_vtkSelectedPointList->AddInputConnection(source->GetOutputPort());
-      ++m_NumberOfSelectedAdded;
+        ls->m_vtkSelectedPointList->AddInputConnection(source->GetOutputPort());
+      ++ls->m_NumberOfSelectedAdded;
     }
+    // else if (pointDataIter.Value().hided && !pointDataBroken)
+    // {
+    //     ls->m_vtkHidedPointList->AddInputConnection(source->GetOutputPort());
+    //     ++ls->m_NumberOfHidedAdded;
+    // }
+    // else if (pointDataIter.Value().marked && !pointDataBroken)
+    // {
+    //     ls->m_vtkMarkedPointList->AddInputConnection(source->GetOutputPort());
+    //     ++ls->m_NumberOfMarkedAdded;
+    // }
     else
     {
-      m_vtkUnselectedPointList->AddInputConnection(source->GetOutputPort());
-      ++m_NumberOfUnselectedAdded;
+        ls->m_vtkUnselectedPointList->AddInputConnection(source->GetOutputPort());
+      ++ls->m_NumberOfUnselectedAdded;
     }
     if (showLabel)
     {
@@ -327,13 +409,13 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
       // add it to the wright PointList
       if (pointType)
       {
-        m_vtkSelectedPointList->AddInputConnection(labelTransform->GetOutputPort());
-        ++m_NumberOfSelectedAdded;
+          ls->m_vtkSelectedPointList->AddInputConnection(labelTransform->GetOutputPort());
+        ++ls->m_NumberOfSelectedAdded;
       }
       else
       {
-        m_vtkUnselectedPointList->AddInputConnection(labelTransform->GetOutputPort());
-        ++m_NumberOfUnselectedAdded;
+          ls->m_vtkUnselectedPointList->AddInputConnection(labelTransform->GetOutputPort());
+        ++ls->m_NumberOfUnselectedAdded;
       }
     }
 
@@ -342,45 +424,72 @@ void mitk::PointSetVtkMapper3D::CreateVTKRenderObjects()
   } // end FOR
 
   // now according to number of elements added to selected or unselected, build up the rendering pipeline
-  if (m_NumberOfSelectedAdded > 0)
+  if (ls->m_NumberOfSelectedAdded > 0)
   {
-    m_VtkSelectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_VtkSelectedPolyDataMapper->SetInputConnection(m_vtkSelectedPointList->GetOutputPort());
+      ls->m_VtkSelectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      ls->m_VtkSelectedPolyDataMapper->SetInputConnection(ls->m_vtkSelectedPointList->GetOutputPort());
 
     // create a new instance of the actor
-    m_SelectedActor = vtkSmartPointer<vtkActor>::New();
+    ls->m_SelectedActor = vtkSmartPointer<vtkActor>::New();
 
-    m_SelectedActor->SetMapper(m_VtkSelectedPolyDataMapper);
-    m_PointsAssembly->AddPart(m_SelectedActor);
+    ls->m_SelectedActor->SetMapper(ls->m_VtkSelectedPolyDataMapper);
+    ls->m_PointsAssembly->AddPart(ls->m_SelectedActor);
   }
 
-  if (m_NumberOfUnselectedAdded > 0)
+  if (ls->m_NumberOfUnselectedAdded > 0)
   {
-    m_VtkUnselectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_VtkUnselectedPolyDataMapper->SetInputConnection(m_vtkUnselectedPointList->GetOutputPort());
+      ls->m_VtkUnselectedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      ls->m_VtkUnselectedPolyDataMapper->SetInputConnection(ls->m_vtkUnselectedPointList->GetOutputPort());
 
     // create a new instance of the actor
-    m_UnselectedActor = vtkSmartPointer<vtkActor>::New();
+    ls->m_UnselectedActor = vtkSmartPointer<vtkActor>::New();
 
-    m_UnselectedActor->SetMapper(m_VtkUnselectedPolyDataMapper);
-    m_PointsAssembly->AddPart(m_UnselectedActor);
+    ls->m_UnselectedActor->SetMapper(ls->m_VtkUnselectedPolyDataMapper);
+    ls->m_PointsAssembly->AddPart(ls->m_UnselectedActor);
+  }
+
+  if (ls->m_NumberOfHidedAdded > 0)
+  {
+      ls->m_VtkHidedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      ls->m_VtkHidedPolyDataMapper->SetInputConnection(ls->m_vtkHidedPointList->GetOutputPort());
+
+      // create a new instance of the actor
+      ls->m_HidedActor = vtkSmartPointer<vtkActor>::New();
+
+      ls->m_HidedActor->SetMapper(ls->m_VtkHidedPolyDataMapper);
+      ls->m_PointsAssembly->AddPart(ls->m_HidedActor);
+  }
+
+  if (ls->m_NumberOfMarkedAdded > 0)
+  {
+      ls->m_VtkMarkedPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      ls->m_VtkMarkedPolyDataMapper->SetInputConnection(ls->m_vtkMarkedPointList->GetOutputPort());
+
+      // create a new instance of the actor
+      ls->m_MarkedActor = vtkSmartPointer<vtkActor>::New();
+
+      ls->m_MarkedActor->SetMapper(ls->m_VtkMarkedPolyDataMapper);
+      ls->m_PointsAssembly->AddPart(ls->m_MarkedActor);
   }
 }
 
 void mitk::PointSetVtkMapper3D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
 {
+  LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
   bool visible = true;
   GetDataNode()->GetVisibility(visible, renderer, "visible");
   if (!visible)
   {
-    m_UnselectedActor->VisibilityOff();
-    m_SelectedActor->VisibilityOff();
-    m_ContourActor->VisibilityOff();
+    ls->m_UnselectedActor->VisibilityOff();
+    ls->m_SelectedActor->VisibilityOff();
+    ls->m_ContourActor->VisibilityOff();
+    ls->m_MarkedActor->VisibilityOff();
+    ls->m_HidedActor->VisibilityOff();
     return;
   }
 
   // create new vtk render objects (e.g. sphere for a point)
-  BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  //BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
   bool needGenerateData = ls->IsGenerateDataRequired(renderer, this, GetDataNode());
 
   if (!needGenerateData)
@@ -394,41 +503,45 @@ void mitk::PointSetVtkMapper3D::GenerateDataForRenderer(mitk::BaseRenderer *rend
 
   if (needGenerateData)
   {
-    this->CreateVTKRenderObjects();
+    this->CreateVTKRenderObjects(renderer);
     ls->UpdateGenerateDataTime();
   }
 
-  this->ApplyAllProperties(renderer, m_ContourActor);
+  this->ApplyAllProperties(renderer, ls->m_ContourActor);
 
   bool showPoints = true;
   this->GetDataNode()->GetBoolProperty("show points", showPoints);
 
-  m_UnselectedActor->SetVisibility(showPoints);
-  m_SelectedActor->SetVisibility(showPoints);
+  ls->m_UnselectedActor->SetVisibility(showPoints);
+  ls->m_SelectedActor->SetVisibility(showPoints);
+  ls->m_MarkedActor->SetVisibility(showPoints);
+  ls->m_HidedActor->SetVisibility(false);
 
   if (false && dynamic_cast<mitk::FloatProperty *>(this->GetDataNode()->GetProperty("opacity")) != nullptr)
   {
     mitk::FloatProperty::Pointer pointOpacity =
       dynamic_cast<mitk::FloatProperty *>(this->GetDataNode()->GetProperty("opacity"));
     float opacity = pointOpacity->GetValue();
-    m_ContourActor->GetProperty()->SetOpacity(opacity);
-    m_UnselectedActor->GetProperty()->SetOpacity(opacity);
-    m_SelectedActor->GetProperty()->SetOpacity(opacity);
+    ls->m_ContourActor->GetProperty()->SetOpacity(opacity);
+    ls->m_UnselectedActor->GetProperty()->SetOpacity(opacity);
+    ls->m_SelectedActor->GetProperty()->SetOpacity(opacity);
   }
 
   bool showContour = false;
   this->GetDataNode()->GetBoolProperty("show contour", showContour);
-  m_ContourActor->SetVisibility(showContour);
+  ls->m_ContourActor->SetVisibility(showContour);
 }
 
-void mitk::PointSetVtkMapper3D::ResetMapper(BaseRenderer * /*renderer*/)
+void mitk::PointSetVtkMapper3D::ResetMapper(BaseRenderer * renderer)
 {
-  m_PointsAssembly->VisibilityOff();
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
+  ls->m_PointsAssembly->VisibilityOff();
 }
 
-vtkProp *mitk::PointSetVtkMapper3D::GetVtkProp(mitk::BaseRenderer * /*renderer*/)
+vtkProp *mitk::PointSetVtkMapper3D::GetVtkProp(mitk::BaseRenderer * renderer)
 {
-  return m_PointsAssembly;
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
+  return ls->m_PointsAssembly;
 }
 
 void mitk::PointSetVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer * /*renderer*/)
@@ -437,6 +550,7 @@ void mitk::PointSetVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer * /*render
 
 void mitk::PointSetVtkMapper3D::ApplyAllProperties(mitk::BaseRenderer *renderer, vtkActor *actor)
 {
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
   Superclass::ApplyColorAndOpacityProperties(renderer, actor);
   // check for color props and use it for rendering of selected/unselected points and contour
   // due to different params in VTK (double/float) we have to convert!
@@ -445,6 +559,7 @@ void mitk::PointSetVtkMapper3D::ApplyAllProperties(mitk::BaseRenderer *renderer,
   double unselectedColor[4] = {1.0f, 1.0f, 0.0f, 1.0f}; // yellow
   double selectedColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};   // red
   double contourColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};    // red
+  double markedColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };    // green
 
   // different types for color!!!
   mitk::Color tmpColor;
@@ -551,28 +666,32 @@ void mitk::PointSetVtkMapper3D::ApplyAllProperties(mitk::BaseRenderer *renderer,
   // check if a contour shall be drawn
   bool showContour = false;
   this->GetDataNode()->GetBoolProperty("show contour", showContour, renderer);
-  if (showContour && (m_ContourActor != nullptr))
+  if (showContour && (ls->m_ContourActor != nullptr))
   {
-    this->CreateContour(m_WorldPositions, m_PointConnections);
-    m_ContourActor->GetProperty()->SetColor(contourColor);
-    m_ContourActor->GetProperty()->SetOpacity(opacity);
+    this->CreateContour(ls->m_WorldPositions, ls->m_PointConnections,renderer);
+    ls->m_ContourActor->GetProperty()->SetColor(contourColor);
+    ls->m_ContourActor->GetProperty()->SetOpacity(opacity);
   }
 
-  m_SelectedActor->GetProperty()->SetColor(selectedColor);
-  m_SelectedActor->GetProperty()->SetOpacity(opacity);
+  ls->m_SelectedActor->GetProperty()->SetColor(selectedColor);
+  ls->m_SelectedActor->GetProperty()->SetOpacity(opacity);
 
-  m_UnselectedActor->GetProperty()->SetColor(unselectedColor);
-  m_UnselectedActor->GetProperty()->SetOpacity(opacity);
+  ls->m_UnselectedActor->GetProperty()->SetColor(unselectedColor);
+  ls->m_UnselectedActor->GetProperty()->SetOpacity(opacity);
+
+  ls->m_MarkedActor->GetProperty()->SetColor(markedColor);
+  ls->m_MarkedActor->GetProperty()->SetOpacity(opacity);
 }
 
-void mitk::PointSetVtkMapper3D::CreateContour(vtkPoints *points, vtkCellArray *m_PointConnections)
+void mitk::PointSetVtkMapper3D::CreateContour(vtkPoints* points, vtkCellArray* PointConnections, mitk::BaseRenderer* renderer)
 {
+    LocalStorage* ls = m_LSH.GetLocalStorage(renderer);
   vtkSmartPointer<vtkAppendPolyData> vtkContourPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
   vtkSmartPointer<vtkPolyDataMapper> vtkContourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
   vtkSmartPointer<vtkPolyData> contour = vtkSmartPointer<vtkPolyData>::New();
   contour->SetPoints(points);
-  contour->SetLines(m_PointConnections);
+  contour->SetLines(PointConnections);
 
   vtkSmartPointer<vtkTubeFilter> tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
   tubeFilter->SetNumberOfSides(12);
@@ -593,8 +712,8 @@ void mitk::PointSetVtkMapper3D::CreateContour(vtkPoints *points, vtkCellArray *m
   vtkContourPolyData->AddInputConnection(tubeFilter->GetOutputPort());
   vtkContourPolyDataMapper->SetInputConnection(vtkContourPolyData->GetOutputPort());
 
-  m_ContourActor->SetMapper(vtkContourPolyDataMapper);
-  m_PointsAssembly->AddPart(m_ContourActor);
+  ls->m_ContourActor->SetMapper(vtkContourPolyDataMapper);
+  ls->m_PointsAssembly->AddPart(ls->m_ContourActor);
 }
 
 void mitk::PointSetVtkMapper3D::SetDefaultProperties(mitk::DataNode *node, mitk::BaseRenderer *renderer, bool overwrite)
