@@ -185,9 +185,9 @@ set(CMAKE_CXX_STANDARD ${MITK_CXX_STANDARD})
 set(CMAKE_CXX_STANDARD_REQUIRED 1)
 
 #disable 4819 msvc warning
-if(MSVC)
-  add_compile_options(/wd4819)
-endif()
+# if(MSVC)
+#   add_compile_options(/wd4819)
+# endif()
 
 
 

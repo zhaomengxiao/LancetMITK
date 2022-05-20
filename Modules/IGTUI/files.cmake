@@ -23,6 +23,7 @@ set(CPP_FILES
 
   Qmitk/QmitkNDIAuroraWidget.cpp
   Qmitk/QmitkNDIPolarisWidget.cpp
+  Qmitk/QmitkNDIVegaWidget.cpp
   Qmitk/QmitkMicronTrackerWidget.cpp
   Qmitk/QmitkNPOptitrackWidget.cpp
   Qmitk/QmitkVirtualTrackerWidget.cpp
@@ -59,6 +60,7 @@ set(UI_FILES
 
   Qmitk/QmitkNDIAuroraWidget.ui
   Qmitk/QmitkNDIPolarisWidget.ui
+  Qmitk/QmitkNDIVegaWidget.ui
   Qmitk/QmitkMicronTrackerWidget.ui
   Qmitk/QmitkNPOptitrackWidget.ui
   Qmitk/QmitkVirtualTrackerWidget.ui
@@ -90,6 +92,7 @@ set(MOC_H_FILES
 
   Qmitk/QmitkNDIAuroraWidget.h
   Qmitk/QmitkNDIPolarisWidget.h
+  Qmitk/QmitkNDIVegaWidget.h
   Qmitk/QmitkMicronTrackerWidget.h
   Qmitk/QmitkNPOptitrackWidget.h
   Qmitk/QmitkVirtualTrackerWidget.h

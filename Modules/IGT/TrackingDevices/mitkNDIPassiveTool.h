@@ -20,6 +20,7 @@ found in the LICENSE file.
 namespace mitk
 {
   class NDITrackingDevice;
+  class LancetVegaTrackingDevice;
   /**Documentation
   * \brief Implementation of a passive NDI optical tool
   *
@@ -32,6 +33,7 @@ namespace mitk
   {
   public:
     friend class NDITrackingDevice;
+    friend class LancetVegaTrackingDevice;
     /**
     * \brief tracking priority for NDI tracking devices
     */
@@ -56,12 +58,15 @@ namespace mitk
     itkSetStringMacro(SerialNumber);  ///< set serial number of the tool
     itkGetStringMacro(SerialNumber);  ///< get serial number of the tool
     itkGetStringMacro(File);          ///< get file from which this tool was loaded
-
+    itkSetMacro(FrameNumber,uint32_t);
+    itkGetMacro(FrameNumber, uint32_t);
   protected:
     itkFactorylessNewMacro(Self);
     itkCloneMacro(Self)
     NDIPassiveTool();
     ~NDIPassiveTool() override;
+
+    uint32_t m_FrameNumber;
 
     unsigned char* m_SROMData;            ///< content of the srom tool description file
     unsigned int m_SROMDataLength;        ///< length of the  srom tool description file

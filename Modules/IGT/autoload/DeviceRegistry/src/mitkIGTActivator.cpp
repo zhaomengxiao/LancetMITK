@@ -17,17 +17,17 @@ found in the LICENSE file.
 #include "mitkNDIAuroraTypeInformation.h"
 #include "mitkNDIPolarisTypeInformation.h"
 #include "mitkVirtualTrackerTypeInformation.h"
+#include "LancetVegaTrackingDeviceTypeInformation.h"
+#include "mitkOpenIGTLinkTypeInformation.h"
 #ifdef MITK_USE_MICRON_TRACKER
 #include "mitkMicronTrackerTypeInformation.h"
 #endif
 #ifdef MITK_USE_OPTITRACK_TRACKER
 #include "mitkNPOptitrackTrackingTypeInformation.h"
 #endif
-#include "mitkOpenIGTLinkTypeInformation.h"
 #ifdef MITK_USE_POLHEMUS_TRACKER
 #include "mitkPolhemusTrackerTypeInformation.h"
 #endif
-
 namespace mitk
 {
 
@@ -45,6 +45,7 @@ namespace mitk
     m_DeviceTypeCollection.RegisterTrackingDeviceType(new mitk::NDIPolarisTypeInformation());
     m_DeviceTypeCollection.RegisterTrackingDeviceType(new mitk::VirtualTrackerTypeInformation());
     m_DeviceTypeCollection.RegisterTrackingDeviceType(new mitk::OpenIGTLinkTypeInformation());
+    m_DeviceTypeCollection.RegisterTrackingDeviceType(new mitk::LancetVegaTrackingDeviceTypeInformation());
 #ifdef MITK_USE_OPTITRACK_TRACKER
     m_DeviceTypeCollection.RegisterTrackingDeviceType(new mitk::NPOptitrackTrackingTypeInformation());
 #endif

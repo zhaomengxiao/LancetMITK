@@ -5,6 +5,8 @@ option(MITK_USE_OPTITRACK_TRACKER "Enable support for Optitrack tracker hardware
 
 option(MITK_USE_POLHEMUS_TRACKER "Enable support for Polhemus tracker hardware" OFF)
 
+option(MITK_USE_VEGA_TRACKER "Enable support for NDI VEGA tracker hardware" ON)
+
 # only if MicronTracker is enabled
 if(MITK_USE_MICRON_TRACKER)
   find_library(MITK_MICRON_TRACKER_LIB MTC DOC "Path which contains the MT2 library.")
@@ -46,3 +48,10 @@ if(WIN32)
   #End MicroBird Hardware
 
 endif(WIN32)
+
+#only if VEGA is enabled
+if(MITK_USE_VEGA_TRACKER)
+  find_library(MITK_VEGA_TRACKER_LIB CAPIcommon DOC "Path which contains the vega library.")
+  find_path(MITK_VEGA_TRACKER_INCLUDE_DIR CombinedApi.h DOC  "Include directory of the vega library.")
+ENDIF(MITK_USE_VEGA_TRACKER)
+#End VEGA Hardware

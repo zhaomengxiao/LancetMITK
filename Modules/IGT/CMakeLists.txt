@@ -21,13 +21,20 @@ if(MITK_USE_POLHEMUS_TRACKER)
   set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ${MITK_POLHEMUS_TRACKER_LIB})
 endif()
 
+if(MITK_USE_VEGA_TRACKER)
+  set(ADDITIONAL_INCLUDE_DIRS ${ADDITIONAL_INCLUDE_DIRS} ${MITK_VEGA_TRACKER_INCLUDE_DIR})
+  set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ${MITK_VEGA_TRACKER_LIB})
+endif()
+
+
+
 mitk_create_module(
   INCLUDE_DIRS
     PUBLIC Algorithms Common DataManagement ExceptionHandling IO Rendering TrackingDevices TestingHelper
-    PRIVATE ${ADDITIONAL_INCLUDE_DIRS}
+    PUBLIC ${ADDITIONAL_INCLUDE_DIRS}
   DEPENDS PUBLIC MitkImageStatistics MitkSceneSerialization MitkIGTBase MitkOpenIGTLink
-  PACKAGE_DEPENDS PRIVATE ITK|RegistrationCommon OpenIGTLink tinyxml2
-  ADDITIONAL_LIBS "${ADDITIONAL_LIBS}"
+  PACKAGE_DEPENDS PRIVATE ITK|RegistrationCommon OpenIGTLink tinyxml2 Qt5|Core
+  ADDITIONAL_LIBS PUBLIC "${ADDITIONAL_LIBS}"
 )
 
 if(MitkIGT_IS_ENABLED)
@@ -52,3 +59,4 @@ if(MODULE_IS_ENABLED)
   add_subdirectory(Tutorial)
   add_subdirectory(Testing)
 endif()
+

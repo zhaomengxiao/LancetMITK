@@ -72,6 +72,8 @@ set(CPP_FILES
 #  TrackingDevices/mitkPolhemusTrackingDevice.cpp
 #  TrackingDevices/mitkPolhemusTool.cpp
 #  TrackingDevices/mitkPolhemusTrackerTypeInformation.cpp
+  TrackingDevices/LancetVegaTrackingDevice.cpp
+  TrackingDevices/LancetVegaTrackingDeviceTypeInformation.cpp
 )
 
 set(H_FILES

@@ -1,4 +1,4 @@
-/*============================================================================
+ï»¿/*============================================================================
 
 The Medical Imaging Interaction Toolkit (MITK)
 
@@ -57,7 +57,7 @@ public:
       m_grid[i] = (double)14 * i;
     }
 
-    // AIF from Weinmann, H. J., Laniado, M., and W.Mützel (1984). Pharmacokinetics of GD - DTPA / dimeglumine after intravenous injection into healthy volunteers. Phys Chem Phys Med NMR, 16(2) : 167–72.
+    // AIF from Weinmann, H. J., Laniado, M., and W.Mé»·zel (1984). Pharmacokinetics of GD - DTPA / dimeglumine after intravenous injection into healthy volunteers. Phys Chem Phys Med NMR, 16(2) : 167?2.
     int D = 1;
     double a1 = 3.99;
     double m1 = 0.144;

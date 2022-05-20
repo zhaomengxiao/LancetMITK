@@ -20,6 +20,7 @@ found in the LICENSE file.
 #include "mitkMicronTrackerTypeInformation.h"
 #include "mitkNPOptitrackTrackingTypeInformation.h"
 #include "mitkOpenIGTLinkTypeInformation.h"
+#include "LancetVegaTrackingDeviceTypeInformation.h"
 
 //standard tracking devices, which always should be avaiable
 #include "QmitkNDIAuroraWidget.h"
@@ -28,7 +29,7 @@ found in the LICENSE file.
 #include "QmitkNPOptitrackWidget.h"
 #include "QmitkVirtualTrackerWidget.h"
 #include "QmitkOpenIGTLinkWidget.h"
-
+#include "QmitkNDIVegaWidget.h"
 // Polhemus tracking device
 #ifdef MITK_USE_POLHEMUS_TRACKER
 #include "mitkPolhemusTrackerTypeInformation.h"
@@ -55,6 +56,7 @@ namespace mitk
     m_DeviceWidgetCollection.RegisterTrackingDeviceWidget(mitk::NPOptitrackTrackingTypeInformation::GetTrackingDeviceName(), new QmitkNPOptitrackWidget);
     m_DeviceWidgetCollection.RegisterTrackingDeviceWidget(mitk::VirtualTrackerTypeInformation::GetTrackingDeviceName(), new QmitkVirtualTrackerWidget);
     m_DeviceWidgetCollection.RegisterTrackingDeviceWidget(mitk::OpenIGTLinkTypeInformation::GetTrackingDeviceName(), new QmitkOpenIGTLinkWidget);
+    m_DeviceWidgetCollection.RegisterTrackingDeviceWidget(mitk::LancetVegaTrackingDeviceTypeInformation::GetTrackingDeviceName(), new QmitkNDIVegaWidget);
 #ifdef MITK_USE_POLHEMUS_TRACKER
     m_DeviceWidgetCollection.RegisterTrackingDeviceWidget(mitk::PolhemusTrackerTypeInformation::GetTrackingDeviceName(), new QmitkPolhemusTrackerWidget);
 #endif
