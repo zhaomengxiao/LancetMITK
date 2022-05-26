@@ -119,27 +119,95 @@ mitk::TrackingDeviceSource::Pointer mitk::TrackingDeviceSourceConfigurator::Crea
   return returnValue;
 }
 
+mitk::TrackingDeviceSource::Pointer mitk::TrackingDeviceSourceConfigurator::CreateTrackingDeviceSource(
+  mitk::NavigationDataObjectVisualizationFilter::Pointer &visualizationFilter,
+  mitk::NavigationDataInReferenceCoordFilter::Pointer &referenceFilter)
+{
+  if (!this->IsCreateTrackingDeviceSourcePossible())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  mitk::TrackingDeviceSource::Pointer returnValue;
+
+  us::ModuleContext *context = us::GetModuleContext();
+
+  std::vector<us::ServiceReference<mitk::TrackingDeviceTypeCollection>> refs =
+    context->GetServiceReferences<mitk::TrackingDeviceTypeCollection>();
+
+  if (refs.empty())
+  {
+    MITK_ERROR << "No tracking device service found!";
+  }
+
+  mitk::TrackingDeviceTypeCollection *deviceTypeCollection =
+    context->GetService<mitk::TrackingDeviceTypeCollection>(refs.front());
+
+  // create tracking device source
+  returnValue = deviceTypeCollection->GetTrackingDeviceTypeInformation(m_TrackingDevice->GetType())
+                  ->CreateTrackingDeviceSource(
+                    m_TrackingDevice, m_NavigationTools, &m_ErrorMessage, &m_ToolCorrespondencesInToolStorage);
+
+  // TODO: insert other tracking systems?
+  if (returnValue.IsNull())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  // create reference filter
+  referenceFilter = CreateNavigationDataInReferenceCoordFilter(returnValue);
+  if (returnValue.IsNull())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+  // create visualization filter
+  visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools);
+  if (visualizationFilter.IsNull())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  return returnValue;
+}
+
 std::string mitk::TrackingDeviceSourceConfigurator::GetErrorMessage()
 {
   return this->m_ErrorMessage;
 }
 
 //############################ internal help methods ########################################
+mitk::NavigationDataInReferenceCoordFilter::Pointer
+  mitk::TrackingDeviceSourceConfigurator::CreateNavigationDataInReferenceCoordFilter(
+    mitk::NavigationDataSource::Pointer navigationDataSource)
+{
+  mitk::NavigationDataInReferenceCoordFilter::Pointer returnValue = mitk::NavigationDataInReferenceCoordFilter::New();
 
-mitk::NavigationDataObjectVisualizationFilter::Pointer mitk::TrackingDeviceSourceConfigurator::CreateNavigationDataObjectVisualizationFilter(mitk::TrackingDeviceSource::Pointer trackingDeviceSource, mitk::NavigationToolStorage::Pointer navigationTools)
+  returnValue->ConnectTo(navigationDataSource);
+  returnValue->Update();
+  return returnValue;
+}
+
+mitk::NavigationDataObjectVisualizationFilter::Pointer
+  mitk::TrackingDeviceSourceConfigurator::CreateNavigationDataObjectVisualizationFilter(
+    mitk::NavigationDataSource::Pointer navigationDataSource, mitk::NavigationToolStorage::Pointer navigationTools)
   {
   mitk::NavigationDataObjectVisualizationFilter::Pointer returnValue = mitk::NavigationDataObjectVisualizationFilter::New();
-  for (unsigned int i=0; i<trackingDeviceSource->GetNumberOfIndexedOutputs(); i++)
+    for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
     {
     // Note: If all tools have the same name only the first tool will always be returned and
     //       the others won't be updated during rendering.This could potentially lead to inconstencies
-    mitk::NavigationTool::Pointer currentTool = navigationTools->GetToolByName(trackingDeviceSource->GetOutput(i)->GetName());
+      mitk::NavigationTool::Pointer currentTool =
+        navigationTools->GetToolByName(navigationDataSource->GetOutput(i)->GetName());
     if (currentTool.IsNull())
       {
       this->m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
       return nullptr;
       }
-    returnValue->SetInput(i,trackingDeviceSource->GetOutput(i));
+      returnValue->SetInput(i, navigationDataSource->GetOutput(i));
     returnValue->SetRepresentationObject(i,currentTool->GetDataNode()->GetData());
     }
   return returnValue;

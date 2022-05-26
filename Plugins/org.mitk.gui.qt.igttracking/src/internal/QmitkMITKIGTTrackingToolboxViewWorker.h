@@ -19,7 +19,7 @@ found in the LICENSE file.
 #include <mitkNavigationToolStorage.h>
 #include <mitkTrackingDeviceSource.h>
 #include <mitkNavigationDataObjectVisualizationFilter.h>
-
+#include  <mitkNavigationDataInReferenceCoordFilter.h>
 //QT headers
 #include <QTimer>
 
@@ -48,12 +48,15 @@ public:
   void SetInverseMode(bool mode);
   void SetTrackingDeviceData(mitk::TrackingDeviceData d);
   void SetNavigationToolStorage(mitk::NavigationToolStorage::Pointer n);
+  void SetRefCoordMode(bool mode);
+  void SetRefToolIndex(int index);
 
   itkGetMacro(NavigationToolStorage, mitk::NavigationToolStorage::Pointer);
 
   mitk::TrackingDeviceSource::Pointer GetTrackingDeviceSource();
   itkGetMacro(TrackingDeviceData, mitk::TrackingDeviceData);
   itkGetMacro(ToolVisualizationFilter, mitk::NavigationDataObjectVisualizationFilter::Pointer);
+  itkGetMacro(ReferenceFilter, mitk::NavigationDataInReferenceCoordFilter::Pointer);
 
   public slots:
   void ThreadFunc();
@@ -75,10 +78,13 @@ protected:
   //members for the filter pipeline which is created in the worker thread during ConnectDevice()
   mitk::TrackingDeviceSource::Pointer m_TrackingDeviceSource; ///> member for the source of the IGT pipeline
   mitk::TrackingDeviceData m_TrackingDeviceData; ///> stores the tracking device data as long as this is not handled by the tracking device configuration widget
-  mitk::NavigationDataObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (second filter of the IGT pipeline)
+  mitk::NavigationDataObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (third filter of the IGT pipeline)
+  mitk::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the reference coords filter (second filter of the IGT pipeline)
 
   //members some internal flags
   bool m_InverseMode;     //flag that is true when the inverse mode is enabled
+  bool m_RefCoordMode;
+  unsigned int m_RefToolIndex{0};
 
   //stores the original colors of the tracking tools
   std::map<mitk::DataNode::Pointer, mitk::Color> m_OriginalColors;

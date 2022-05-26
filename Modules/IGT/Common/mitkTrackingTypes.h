@@ -84,8 +84,9 @@ namespace mitk
   typedef std::vector<MarkerPointType> MarkerPointContainerType;
 
   /** definition of colors for IGT */
-  static mitk::Color IGTColor_WARNING = mitk::ColorProperty::New(1.0f, 0.0f, 0.0f)->GetColor();
-  static mitk::Color IGTColor_VALID = mitk::ColorProperty::New(0.0f, 1.0f, 0.0f)->GetColor();
-  static mitk::Color IGTColor_INVALID = mitk::ColorProperty::New(1.0f, 1.0f, 1.0f)->GetColor();
+  
+  static mitk::Color IGTColor_WARNING = mitk::ColorProperty::New(1.0f, 0.0f, 0.0f)->GetColor();//RED
+  static mitk::Color IGTColor_VALID = mitk::ColorProperty::New(0.0f, 1.0f, 0.0f)->GetColor();//GREEN
+  static mitk::Color IGTColor_INVALID = mitk::ColorProperty::New(1.0f, 1.0f, 1.0f)->GetColor();//WHITE
 } // namespace mitk
 #endif /* MITKTRACKINGTYPES_H_HEADER_INCLUDED_ */

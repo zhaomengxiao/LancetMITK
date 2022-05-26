@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="m_MainWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -373,6 +373,56 @@
        <string>Options</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
+       <item row="3" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Open IGT Link</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_15">
+          <item>
+           <widget class="QCheckBox" name="m_EnableOpenIGTLinkMicroService">
+            <property name="text">
+             <string>Enable Open IGT Link MicroService</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Select Open IGT Link Data Format:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="m_OpenIGTLinkDataFormat">
+            <item>
+             <property name="text">
+              <string>TRANSFORM</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>QTDATA</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>TDATA</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>POSITION</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="m_UpdateRateOptionsGroupBox">
          <property name="title">
@@ -512,6 +562,61 @@
          </layout>
         </widget>
        </item>
+       <item row="5" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Tool Visualization Options</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="showHideToolProjectionCheckBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Show Tool Projection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="m_toolselector"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="showHideToolAxisCheckBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Show Tool Axis</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="m_RenderWarningLabel">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Rendering Disabled!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::AutoText</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QSpinBox" name="spinBox_reftool">
+         <property name="minimum">
+          <number>-1</number>
+         </property>
+         <property name="value">
+          <number>-1</number>
+         </property>
+        </widget>
+       </item>
        <item row="4" column="0" colspan="2">
         <widget class="QGroupBox" name="m_OtherOptionsGroupBox">
          <property name="title">
@@ -581,109 +686,7 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="title">
-          <string>Tool Visualization Options</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="showHideToolProjectionCheckBox">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Show Tool Projection</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="m_toolselector"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="showHideToolAxisCheckBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Show Tool Axis</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Open IGT Link</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_15">
-          <item>
-           <widget class="QCheckBox" name="m_EnableOpenIGTLinkMicroService">
-            <property name="text">
-             <string>Enable Open IGT Link MicroService</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Select Open IGT Link Data Format:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="m_OpenIGTLinkDataFormat">
-            <item>
-             <property name="text">
-              <string>TRANSFORM</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>QTDATA</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>TDATA</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>POSITION</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="m_DisableAllTimers">
-         <property name="text">
-          <string>Disable All Timers</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="m_RenderWarningLabel">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;right&quot;&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;Rendering Disabled!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::AutoText</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
+       <item row="8" column="0">
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -695,6 +698,20 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="m_DisableAllTimers">
+         <property name="text">
+          <string>Disable All Timers</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="checkBox_refcoord">
+         <property name="text">
+          <string>Enable Reference Coord</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

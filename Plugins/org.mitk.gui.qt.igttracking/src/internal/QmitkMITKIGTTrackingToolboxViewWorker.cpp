@@ -53,6 +53,18 @@ void QmitkMITKIGTTrackingToolboxViewWorker::SetNavigationToolStorage(mitk::Navig
   m_NavigationToolStorage = n;
 }
 
+void QmitkMITKIGTTrackingToolboxViewWorker::SetRefCoordMode(bool mode)
+{
+  m_RefCoordMode = mode;
+  MITK_INFO << "m_RefCoordMode: " << m_RefCoordMode;
+}
+
+void QmitkMITKIGTTrackingToolboxViewWorker::SetRefToolIndex(int index)
+{
+  m_RefToolIndex = index;
+  MITK_INFO << "m_RefToolIndex: " << m_RefToolIndex;
+}
+
 //! [Thread 7]
 void QmitkMITKIGTTrackingToolboxViewWorker::ThreadFunc()
 {
@@ -114,13 +126,25 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
     trackingDevice->SetRotationMode(mitk::TrackingDevice::RotationTransposed);
   }
 
+
   //Get Tracking Volume Data
   mitk::TrackingDeviceData data = m_TrackingDeviceData;
 
   //Create Navigation Data Source with the factory class
   mitk::TrackingDeviceSourceConfigurator::Pointer myTrackingDeviceSourceFactory = mitk::TrackingDeviceSourceConfigurator::New(m_NavigationToolStorage, trackingDevice);
+  if (m_RefCoordMode)
+  {
+    m_TrackingDeviceSource =
+      myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter, m_ReferenceFilter);
 
-  m_TrackingDeviceSource = myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter);
+     // set the reference tool index
+    m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
+  }
+  else
+  {
+    m_TrackingDeviceSource =
+      myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter);
+  }
 
   if (m_TrackingDeviceSource.IsNull())
   {
@@ -133,6 +157,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
   if (m_InverseMode)
     m_ToolVisualizationFilter->SetRotationMode(mitk::NavigationDataObjectVisualizationFilter::RotationTransposed);
 
+ 
   //First check if the created object is valid
   if (m_TrackingDeviceSource.IsNull())
   {

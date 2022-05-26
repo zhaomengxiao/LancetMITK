@@ -512,6 +512,8 @@ void QmitkMITKIGTTrackingToolboxView::OnConnect()
   m_Worker->SetWorkerMethod(QmitkMITKIGTTrackingToolboxViewWorker::eConnectDevice);
   m_Worker->SetTrackingDevice(this->m_Controls->m_ConfigurationWidget->GetTrackingDevice());
   m_Worker->SetInverseMode(m_Controls->m_InverseMode->isChecked());
+  m_Worker->SetRefCoordMode(m_Controls->checkBox_refcoord->isChecked());
+  m_Worker->SetRefToolIndex(m_Controls->spinBox_reftool->value());
   m_Worker->SetNavigationToolStorage(this->m_toolStorage);
   m_Worker->SetTrackingDeviceData(data);
   //start worker thread
