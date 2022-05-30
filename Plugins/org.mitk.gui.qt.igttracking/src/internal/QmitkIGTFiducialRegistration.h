@@ -81,4 +81,19 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
 };
 
+
+// Test software interface
+vtkMatrix4x4 *GetVtkMatrix4x4(mitk::NavigationData::Pointer nd);
+
+void GetReferenceMatrix4x4(vtkMatrix4x4 *Mainmatrix, vtkMatrix4x4 *Refmatrix, vtkMatrix4x4 *Returnmatrix);
+
+
+vtkMatrix4x4 * GetMatrixTrackingDrfToPatientCt(vtkMatrix4x4 * matrixCtDrfToCtImage, mitk::Image *inputCtImage,
+                                              mitk::NavigationData::Pointer navigationData_ctDrf,
+                                              mitk::NavigationData::Pointer navigationData_trackingDrf);
+
+
+
+
+
 #endif // IGTFiducialRegistration_h
