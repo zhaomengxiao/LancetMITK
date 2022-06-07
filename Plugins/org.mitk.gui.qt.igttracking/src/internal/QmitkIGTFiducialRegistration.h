@@ -57,7 +57,7 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   // Add Spine CT preparation part
   void ReferenceSelect(); // Reference refers to the tracking DRF
   void ToolSelect(); // Tool refers to the CtDrf
-  void PrepareCT(); // Display the patient CT relative to the tracking DRF coordinate system 
+  void PrepareCT(); // Display the patient CT relative to the tracking DRF coordinate system. Here, the tracking DRF is the reference, the CtDrf is the tool
 
   protected:
 
@@ -82,15 +82,7 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 };
 
 
-// Test software interface
-vtkMatrix4x4 *GetVtkMatrix4x4(mitk::NavigationData::Pointer nd);
 
-void GetReferenceMatrix4x4(vtkMatrix4x4 *Mainmatrix, vtkMatrix4x4 *Refmatrix, vtkMatrix4x4 *Returnmatrix);
-
-
-vtkMatrix4x4 * GetMatrixTrackingDrfToPatientCt(vtkMatrix4x4 * matrixCtDrfToCtImage, mitk::Image *inputCtImage,
-                                              mitk::NavigationData::Pointer navigationData_ctDrf,
-                                              mitk::NavigationData::Pointer navigationData_trackingDrf);
 
 
 
