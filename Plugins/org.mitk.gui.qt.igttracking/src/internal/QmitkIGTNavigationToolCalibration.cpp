@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include <mitkQuaternionAveraging.h>
 #include <mitkPivotCalibration.h>
 #include <mitkNavigationData.h>
+#include <mitkMatrixConvert.h>
 
 // Qt
 #include <QMessageBox>
@@ -34,7 +35,14 @@ found in the LICENSE file.
 #include <QFileInfo>
 
 // vtk
+#include "usGetModuleContext.h"
 #include <vtkSphereSource.h>
+
+#include <vtkLandmarkTransform.h>
+
+#include <usModuleInitialization.h>
+
+US_INITIALIZE_MODULE
 
 const std::string QmitkIGTNavigationToolCalibration::VIEW_ID = "org.mitk.views.igtnavigationtoolcalibration";
 
@@ -88,6 +96,7 @@ void QmitkIGTNavigationToolCalibration::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
   connect(m_Controls.m_SetToolToCalibrate, SIGNAL(clicked()), this, SLOT(SetToolToCalibrate()));
   connect(m_Controls.m_SetPointer, SIGNAL(clicked()), this, SLOT(SetCalibrationPointer()));
+  connect(m_Controls.m_SetVisFilter, SIGNAL(clicked()), this, SLOT(SetVisualizationFilter()));
   connect(m_TrackingTimer, SIGNAL(timeout()), this, SLOT(UpdateTrackingTimer()));
   connect(m_Controls.m_AddLandmark, SIGNAL(clicked()), this, SLOT(AddLandmark()));
   connect(m_Controls.m_SaveCalibratedTool, SIGNAL(clicked()), this, SLOT(SaveCalibratedTool()));
@@ -394,6 +403,37 @@ void QmitkIGTNavigationToolCalibration::ApplyToolTipTransform(mitk::NavigationDa
   MITK_INFO << message;
 }
 
+void QmitkIGTNavigationToolCalibration::ApplyToolRegistrationMatrix(mitk::AffineTransform3D::Pointer transform,
+  std::string message)
+{
+  if (!CheckInitialization(false))
+  {
+    return;
+  }
+  
+  // Update tool in tool storage
+  m_ToolToCalibrate->SetToolRegistrationMatrix(transform);
+  
+  // And also update tracking device, so the transform is directly used
+  mitk::TrackingDeviceSource::Pointer trackingDeviceSource;
+  try
+  {
+    trackingDeviceSource =
+      dynamic_cast<mitk::TrackingDeviceSource *>(m_NavigationDataSourceOfToolToCalibrate.GetPointer());
+    mitk::NavigationTool::Pointer navigationTool =
+      trackingDeviceSource->GetToolMetaDataCollection()->GetTool(m_IDToolToCalibrate);
+    navigationTool->SetToolRegistrationMatrix(transform);
+
+    m_VisualizationFilter->SetOffset(m_IDToolToCalibrate, transform);
+  }
+  catch (std::exception &e)
+  {
+    MITK_ERROR << "Error while trying to set the tool registration matrix to the running tracking device. Aborting! (" << e.what()
+               << ")";
+  }
+  MITK_INFO << message;
+}
+
 void QmitkIGTNavigationToolCalibration::ShowToolTipPreview(mitk::NavigationData::Pointer ToolTipInTrackingCoordinates)
 {
   if(m_ToolTipPointPreview.IsNull())
@@ -626,6 +666,51 @@ void QmitkIGTNavigationToolCalibration::SetCalibrationPointer()
   }
 }
 
+void QmitkIGTNavigationToolCalibration::SetVisualizationFilter()
+{
+  //from UI
+  // m_VisualizationFilter = dynamic_cast<mitk::NavigationDataObjectVisualizationFilter*> ( m_Controls.m_SelectionWidget->GetSelectedNavigationDataSource().GetPointer());
+  // if (m_VisualizationFilter.IsNull())
+  // {
+  //   MITK_ERROR << "m_VisualizationFilter null";
+  // }
+  // else
+  //   m_Controls.m_FilterLabel->setText(QString::fromStdString(m_VisualizationFilter->GetName()));
+
+  //code
+  //get context
+  auto context = us::GetModuleContext();
+  if (context==nullptr)
+  {
+    MITK_ERROR << "can't get context";
+  }
+  //get Service References which is mitk::NavigationDataSource
+  const std::string US_INTERFACE_NAME = "org.mitk.services.NavigationDataSource";
+  const std::string US_PROPKEY_DEVICENAME = US_INTERFACE_NAME + ".devicename";
+  std::string interfaceName(us_service_interface_iid<mitk::NavigationDataSource>());
+  std::string empty = "";
+  std::vector<us::ServiceReferenceU> services = context->GetServiceReferences(interfaceName, empty);
+
+  //Get service by name, name can be set when a service is registered
+  for (std::vector<us::ServiceReferenceU>::iterator it = services.begin(); it != services.end(); ++it)
+  {
+    us::Any prop = it->GetProperty(US_PROPKEY_DEVICENAME);
+    MITK_INFO << prop.ToString();
+    if (prop.ToString()=="ToolVisualizationFilter")
+    {
+      auto source = context->GetService<mitk::NavigationDataSource>(*it);
+      m_VisualizationFilter = dynamic_cast<mitk::NavigationDataObjectVisualizationFilter *>(source);
+      if (m_VisualizationFilter.IsNull())
+      {
+        MITK_ERROR << "m_VisualizationFilter null";
+      }
+      else
+        m_Controls.m_FilterLabel->setText(QString::fromStdString(m_VisualizationFilter->GetName()));
+    }
+  }
+   
+}
+
 void QmitkIGTNavigationToolCalibration::UpdateOffsetCoordinates()
 {
   if (m_NavigationDataSourceOfCalibrationPointer.IsNull() || m_NavigationDataSourceOfToolToCalibrate.IsNull())
@@ -717,19 +802,60 @@ void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
   if (m_ToolToCalibrate.IsNotNull())
   {
     mitk::NavigationTool::Pointer calibratedTool = m_ToolToCalibrate;
+    m_CalibrationLandmarks = this->m_Controls.m_CalibrationLandmarkWidget->GetPointSet();
+    m_RegistrationLandmarks = this->m_Controls.m_RegistrationLandmarkWidget->GetPointSet();
     calibratedTool->SetToolControlPoints(this->m_CalibrationLandmarks);
     calibratedTool->SetToolLandmarks(this->m_RegistrationLandmarks);
+
+    vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = vtkSmartPointer<vtkLandmarkTransform>::New();
+     // Do landmarktransform
+    if (m_RegistrationLandmarks->GetSize() >= 3 &&
+        m_RegistrationLandmarks->GetSize() == m_CalibrationLandmarks->GetSize())
+    {
+      vtkSmartPointer<vtkPoints> pSource = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkPoints> pTarget = vtkSmartPointer<vtkPoints>::New();
+
+      for (int i = 0; i < m_CalibrationLandmarks->GetSize(); i++)
+      {
+        pSource->InsertNextPoint(m_CalibrationLandmarks->GetPoint(i).GetDataPointer());
+        pTarget->InsertNextPoint(m_RegistrationLandmarks->GetPoint(i).GetDataPointer());
+      }
+
+      
+      landmarkTransform->SetSourceLandmarks(pSource);
+      landmarkTransform->SetTargetLandmarks(pTarget);
+      landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
+      landmarkTransform->Update();
+    }
+    else
+    {
+      MITK_ERROR << "not enough points of size of tool control points and tool landmarks not match, aborting tool registration!";
+      return;
+    }
+    //apply the registration matrix
+    mitk::AffineTransform3D::Pointer mat = mitk::AffineTransform3D::New();
+    mitk::TransferVtkMatrixToItkTransform<mitk::AffineTransform3D>(landmarkTransform->GetMatrix(), mat);
+    // MITK_INFO << " pSource " << m_CalibrationLandmarks;
+    // MITK_INFO << " pTarget " << m_RegistrationLandmarks;
+    // MITK_INFO  << mat;
+
+    // MITK_INFO << "before apply";
+    // MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
+    ApplyToolRegistrationMatrix(mat);
+    // MITK_INFO << "after apply";
+    // MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
+
     mitk::NavigationToolWriter::Pointer myWriter = mitk::NavigationToolWriter::New();
     QString filename = QFileDialog::getSaveFileName(nullptr,tr("Save Navigation Tool"), "/", "*.IGTTool");
     if (filename.isEmpty()) return;
-
+  
     // ensure that file suffix is set
     QFileInfo file(filename);
     if (file.suffix().isEmpty())
     {
       filename += ".IGTTool";
     }
-
+  
     if (myWriter->DoWrite(filename.toStdString(), calibratedTool)) MITK_INFO << "Saved calibrated tool to file " << filename;
     else MITK_WARN << "Can't write tool to file " << filename;
   }
@@ -737,7 +863,18 @@ void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
   {
     MITK_ERROR << "Did not find navigation tool storage of calibrated tool, aborting!";
   }
-}
+
+   
+
+    // vtkNew<vtkTransform> trans;
+    // trans->SetMatrix(m_ToolToCalibrate->GetToolSurface()->GetGeometry()->GetVtkMatrix());
+    // trans->Concatenate()
+
+    //m_ToolToCalibrate->GetToolSurface()->GetGeometry()->ExecuteOperation()
+
+    
+
+  }
 
 bool QmitkIGTNavigationToolCalibration::CheckInitialization(bool CalibrationPointerRequired)
 {
