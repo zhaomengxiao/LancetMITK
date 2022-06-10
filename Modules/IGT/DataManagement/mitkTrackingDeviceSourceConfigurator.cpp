@@ -209,6 +209,7 @@ mitk::NavigationDataObjectVisualizationFilter::Pointer
       }
       returnValue->SetInput(i, navigationDataSource->GetOutput(i));
     returnValue->SetRepresentationObject(i,currentTool->GetDataNode()->GetData());
+      returnValue->SetOffset(i, currentTool->GetToolRegistrationMatrix());
     }
   return returnValue;
   }

@@ -21,6 +21,7 @@ found in the LICENSE file.
 #include <mitkSceneIO.h>
 #include <mitkPointSet.h>
 #include <mitkIOUtil.h>
+#include <mitkMatrixConvert.h>
 
 //std headers
 #include <cstdio>
@@ -118,7 +119,13 @@ mitk::DataNode::Pointer mitk::NavigationToolWriter::ConvertToDataNode(mitk::Navi
   //Tool Landmarks
     thisTool->AddProperty("ToolRegistrationLandmarks",mitk::StringProperty::New(ConvertPointSetToString(Tool->GetToolLandmarks())), nullptr, true);
     thisTool->AddProperty("ToolCalibrationLandmarks",mitk::StringProperty::New(ConvertPointSetToString(Tool->GetToolControlPoints())), nullptr, true);
-
+  //Tool Registration Matrix
+    thisTool->AddProperty("ToolRegistrationMatrix",
+                          mitk::StringProperty::New(ConvertAffineTransformToString(Tool->GetToolRegistrationMatrix())),
+                          nullptr,
+                          true);
+    MITK_INFO << "affine to string";
+    MITK_INFO << ConvertAffineTransformToString(Tool->GetToolRegistrationMatrix());
   //Tool Tip
     if (Tool->IsToolTipSet())
     {
@@ -162,4 +169,16 @@ std::string mitk::NavigationToolWriter::ConvertQuaternionToString(mitk::Quaterni
 std::stringstream returnValue;
 returnValue << quat.x() << ";" << quat.y() << ";" << quat.z() << ";" << quat.r();
 return returnValue.str();
+}
+
+std::string mitk::NavigationToolWriter::ConvertAffineTransformToString(mitk::AffineTransform3D::Pointer affine)
+{
+  std::stringstream returnValue;
+  auto mat = affine->GetMatrix();
+  for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j)
+      returnValue << mat[i][j] << ";";
+  auto offset = affine->GetOffset();
+  returnValue << offset[0] << ";" << offset[1] << ";" << offset[2] ;
+  return returnValue.str();
 }
