@@ -28,6 +28,7 @@ found in the LICENSE file.
 #include <mitkPivotCalibration.h>
 #include <mitkNavigationData.h>
 #include <mitkMatrixConvert.h>
+#include <surfaceregistraion.h>
 
 // Qt
 #include <QMessageBox>
@@ -99,6 +100,7 @@ void QmitkIGTNavigationToolCalibration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.m_SetVisFilter, SIGNAL(clicked()), this, SLOT(SetVisualizationFilter()));
   connect(m_TrackingTimer, SIGNAL(timeout()), this, SLOT(UpdateTrackingTimer()));
   connect(m_Controls.m_AddLandmark, SIGNAL(clicked()), this, SLOT(AddLandmark()));
+  connect(m_Controls.m_AddICP, SIGNAL(clicked()), this, SLOT(AddICP()));
   connect(m_Controls.m_SaveCalibratedTool, SIGNAL(clicked()), this, SLOT(SaveCalibratedTool()));
   connect(m_Controls.m_AddPivotPose, SIGNAL(clicked()), this, SLOT(OnAddPivotPose()));
   connect(m_Controls.m_ComputePivot, SIGNAL(clicked()), this, SLOT(OnComputePivot()));
@@ -138,6 +140,11 @@ void QmitkIGTNavigationToolCalibration::CreateQtPartControl(QWidget *parent)
   m_RegistrationLandmarksNode = mitk::DataNode::New();
   m_RegistrationLandmarksNode->SetData(m_RegistrationLandmarks);
   m_Controls.m_RegistrationLandmarkWidget->SetPointSetNode(m_RegistrationLandmarksNode);
+
+  m_RegistrationIcpPoints = mitk::PointSet::New();
+  m_RegistrationIcpPointsNode = mitk::DataNode::New();
+  m_RegistrationIcpPointsNode->SetData(m_RegistrationIcpPoints);
+  m_Controls.m_CalibrationICPWidget->SetPointSetNode(m_RegistrationIcpPointsNode);
 
   m_ToolSurfaceInToolCoordinatesDataNode = mitk::DataNode::New();
   m_ToolSurfaceInToolCoordinatesDataNode->SetName("ToolSurface(ToolCoordinates)");
@@ -423,8 +430,13 @@ void QmitkIGTNavigationToolCalibration::ApplyToolRegistrationMatrix(mitk::Affine
     mitk::NavigationTool::Pointer navigationTool =
       trackingDeviceSource->GetToolMetaDataCollection()->GetTool(m_IDToolToCalibrate);
     navigationTool->SetToolRegistrationMatrix(transform);
-
-    m_VisualizationFilter->SetOffset(m_IDToolToCalibrate, transform);
+    if (m_VisualizationFilter.IsNotNull())
+    {
+      m_VisualizationFilter->SetOffset(m_IDToolToCalibrate, transform);
+    }
+    else
+      MITK_WARN << "VisualizationFilter not set when init, Tool Registration matrix will work at next connect but not now";
+    
   }
   catch (std::exception &e)
   {
@@ -797,6 +809,43 @@ void QmitkIGTNavigationToolCalibration::AddLandmark()
   m_RegistrationLandmarks->InsertPoint(m_RegistrationLandmarks->GetSize(), landmark);
 }
 
+void QmitkIGTNavigationToolCalibration::AddICP()
+{
+  if (!CheckInitialization())
+  {
+    return;
+  }
+  mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfToolToCalibrate->GetOutput(m_IDToolToCalibrate);
+  mitk::Point3D landmark = m_NavigationDataSourceOfCalibrationPointer->GetOutput(m_IDCalibrationPointer)->GetPosition();
+
+  // convert to itk transform
+  itk::Vector<double, 3> translation;
+  for (int k = 0; k < 3; k++)
+    translation[k] = navDataTool->GetPosition()[k];
+  itk::Matrix<double, 3, 3> rotation;
+  for (int k = 0; k < 3; k++)
+    for (int l = 0; l < 3; l++)
+      rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
+  rotation = rotation.GetTranspose();
+  itk::Vector<double> landmarkItk;
+  landmarkItk[0] = landmark[0];
+  landmarkItk[1] = landmark[1];
+  landmarkItk[2] = landmark[2];
+
+  // compute landmark in tool coordinates
+  itk::Matrix<double, 3, 3> rotationInverse;
+  for (int k = 0; k < 3; k++)
+    for (int l = 0; l < 3; l++)
+      rotationInverse[k][l] = rotation.GetInverse()[k][l];
+  landmarkItk = rotationInverse * (landmarkItk - translation);
+
+  // convert back and add landmark to pointset
+  landmark[0] = landmarkItk[0];
+  landmark[1] = landmarkItk[1];
+  landmark[2] = landmarkItk[2];
+  m_RegistrationIcpPoints->InsertPoint(m_RegistrationIcpPoints->GetSize(), landmark);
+}
+
 void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
 {
   if (m_ToolToCalibrate.IsNotNull())
@@ -807,74 +856,85 @@ void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
     calibratedTool->SetToolControlPoints(this->m_CalibrationLandmarks);
     calibratedTool->SetToolLandmarks(this->m_RegistrationLandmarks);
 
-    vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = vtkSmartPointer<vtkLandmarkTransform>::New();
+    
      // Do landmarktransform
-    if (m_RegistrationLandmarks->GetSize() >= 3 &&
-        m_RegistrationLandmarks->GetSize() == m_CalibrationLandmarks->GetSize())
-    {
-      vtkSmartPointer<vtkPoints> pSource = vtkSmartPointer<vtkPoints>::New();
-      vtkSmartPointer<vtkPoints> pTarget = vtkSmartPointer<vtkPoints>::New();
+    // vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = vtkSmartPointer<vtkLandmarkTransform>::New();
+    // if (m_RegistrationLandmarks->GetSize() >= 3 &&
+    //     m_RegistrationLandmarks->GetSize() == m_CalibrationLandmarks->GetSize())
+    // {
+    //   vtkSmartPointer<vtkPoints> pSource = vtkSmartPointer<vtkPoints>::New();
+    //   vtkSmartPointer<vtkPoints> pTarget = vtkSmartPointer<vtkPoints>::New();
+    //
+    //   for (int i = 0; i < m_CalibrationLandmarks->GetSize(); i++)
+    //   {
+    //     pSource->InsertNextPoint(m_CalibrationLandmarks->GetPoint(i).GetDataPointer());
+    //     pTarget->InsertNextPoint(m_RegistrationLandmarks->GetPoint(i).GetDataPointer());
+    //   }
+    //
+    //   
+    //   landmarkTransform->SetSourceLandmarks(pSource);
+    //   landmarkTransform->SetTargetLandmarks(pTarget);
+    //   landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
+    //   landmarkTransform->Update();
+    // }
+    // else
+    // {
+    //   MITK_ERROR << "not enough points of size of tool control points and tool landmarks not match, aborting tool registration!";
+    //   return;
+    // }
 
-      for (int i = 0; i < m_CalibrationLandmarks->GetSize(); i++)
-      {
-        pSource->InsertNextPoint(m_CalibrationLandmarks->GetPoint(i).GetDataPointer());
-        pTarget->InsertNextPoint(m_RegistrationLandmarks->GetPoint(i).GetDataPointer());
-      }
-
-      
-      landmarkTransform->SetSourceLandmarks(pSource);
-      landmarkTransform->SetTargetLandmarks(pTarget);
-      landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
-      landmarkTransform->Update();
-    }
-    else
+    mitk::SurfaceRegistration::Pointer surfaceRegistration = mitk::SurfaceRegistration::New();
+    //landmark
+    surfaceRegistration->SetLandmarksSrc(m_CalibrationLandmarks);
+    surfaceRegistration->SetLandmarksTarget(m_RegistrationLandmarks);
+    surfaceRegistration->ComputeLandMarkResult();
+    //icp
+    if (m_RegistrationIcpPoints->GetSize()>0)
     {
-      MITK_ERROR << "not enough points of size of tool control points and tool landmarks not match, aborting tool registration!";
-      return;
+      auto surface = m_NavigationDataSourceOfToolToCalibrate->GetToolMetaData(m_IDToolToCalibrate)->GetToolSurface()->Clone();
+      surface->GetGeometry()->SetIdentity(); //<<<use original surface to registration,When tracking start surface geometry will be moved around.
+      surfaceRegistration->SetIcpPoints(m_RegistrationIcpPoints);
+      surfaceRegistration->SetSurfaceSrc(surface);
+
+      surfaceRegistration->ComputeIcpResult();
     }
+   
+    
     //apply the registration matrix
     mitk::AffineTransform3D::Pointer mat = mitk::AffineTransform3D::New();
-    mitk::TransferVtkMatrixToItkTransform<mitk::AffineTransform3D>(landmarkTransform->GetMatrix(), mat);
-    // MITK_INFO << " pSource " << m_CalibrationLandmarks;
-    // MITK_INFO << " pTarget " << m_RegistrationLandmarks;
-    // MITK_INFO  << mat;
+    mitk::TransferVtkMatrixToItkTransform<mitk::AffineTransform3D>(surfaceRegistration->GetResult(), mat);
+    MITK_INFO << " pSource " << m_CalibrationLandmarks;
+    MITK_INFO << " pTarget " << m_RegistrationLandmarks;
+    MITK_INFO  << mat;
 
-    // MITK_INFO << "before apply";
-    // MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
+    MITK_INFO << "before apply";
+    MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
     ApplyToolRegistrationMatrix(mat);
-    // MITK_INFO << "after apply";
-    // MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
+    MITK_INFO << "after apply";
+    MITK_INFO << calibratedTool->GetToolRegistrationMatrix();
 
-    mitk::NavigationToolWriter::Pointer myWriter = mitk::NavigationToolWriter::New();
-    QString filename = QFileDialog::getSaveFileName(nullptr,tr("Save Navigation Tool"), "/", "*.IGTTool");
-    if (filename.isEmpty()) return;
-  
-    // ensure that file suffix is set
-    QFileInfo file(filename);
-    if (file.suffix().isEmpty())
-    {
-      filename += ".IGTTool";
-    }
-  
-    if (myWriter->DoWrite(filename.toStdString(), calibratedTool)) MITK_INFO << "Saved calibrated tool to file " << filename;
-    else MITK_WARN << "Can't write tool to file " << filename;
+
+    //save tool
+    // mitk::NavigationToolWriter::Pointer myWriter = mitk::NavigationToolWriter::New();
+    // QString filename = QFileDialog::getSaveFileName(nullptr,tr("Save Navigation Tool"), "/", "*.IGTTool");
+    // if (filename.isEmpty()) return;
+    //
+    // // ensure that file suffix is set
+    // QFileInfo file(filename);
+    // if (file.suffix().isEmpty())
+    // {
+    //   filename += ".IGTTool";
+    // }
+    //
+    // if (myWriter->DoWrite(filename.toStdString(), calibratedTool)) MITK_INFO << "Saved calibrated tool to file " << filename;
+    // else MITK_WARN << "Can't write tool to file " << filename;
   }
   else
   {
     MITK_ERROR << "Did not find navigation tool storage of calibrated tool, aborting!";
   }
 
-   
-
-    // vtkNew<vtkTransform> trans;
-    // trans->SetMatrix(m_ToolToCalibrate->GetToolSurface()->GetGeometry()->GetVtkMatrix());
-    // trans->Concatenate()
-
-    //m_ToolToCalibrate->GetToolSurface()->GetGeometry()->ExecuteOperation()
-
-    
-
-  }
+}
 
 bool QmitkIGTNavigationToolCalibration::CheckInitialization(bool CalibrationPointerRequired)
 {

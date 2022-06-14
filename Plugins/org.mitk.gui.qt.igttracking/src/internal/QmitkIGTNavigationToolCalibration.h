@@ -65,6 +65,7 @@ public:
   void SetVisualizationFilter();
   void UpdateTrackingTimer();
   void AddLandmark();
+  void AddICP();
   void SaveCalibratedTool();
   void OnToolCalibrationMethodChanged(int index);
   void OnStartManualToolTipCalibration();
@@ -132,6 +133,10 @@ protected:
   mitk::DataNode::Pointer m_CalibrationLandmarksNode;
   mitk::PointSet::Pointer m_RegistrationLandmarks;
   mitk::DataNode::Pointer m_RegistrationLandmarksNode;
+
+  // members for the tool icp calibration
+  mitk::PointSet::Pointer m_RegistrationIcpPoints;
+  mitk::DataNode::Pointer m_RegistrationIcpPointsNode;
 
   //members and helper methods for tool axis calibration
   mitk::Vector3D m_CalibratedToolAxis;
