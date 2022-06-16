@@ -126,6 +126,10 @@ namespace mitk {
     //TrackingDeviceType:
     itkGetConstMacro(TrackingDeviceType,mitk::TrackingDeviceType);
     itkSetMacro(TrackingDeviceType,mitk::TrackingDeviceType);
+
+    //ToolRegistrationMatrix
+    itkGetConstMacro(ToolRegistrationMatrix, mitk::AffineTransform3D::Pointer);
+    itkSetMacro(ToolRegistrationMatrix, mitk::AffineTransform3D::Pointer);
     //ToolName (only getter):
     /** @return Returns the name of this navigation tool. Returns an empty string if there is
      *          no name (for example because the data node has not been set yet).
@@ -200,6 +204,7 @@ namespace mitk {
     /** @brief Holds the transformation of the main tool axis to the negative z-axis (0,0,-1) */
     mitk::Quaternion m_ToolAxisOrientation;
 
+    mitk::AffineTransform3D::Pointer m_ToolRegistrationMatrix;
   };
 } // namespace mitk
 #endif //NAVIGATIONTOOL

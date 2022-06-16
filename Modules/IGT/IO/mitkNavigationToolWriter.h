@@ -61,6 +61,7 @@ namespace mitk
     std::string ConvertPointSetToString(mitk::PointSet::Pointer pointSet);
     std::string ConvertPointToString(mitk::Point3D point);
     std::string ConvertQuaternionToString(mitk::Quaternion quat);
+    std::string ConvertAffineTransformToString(mitk::AffineTransform3D::Pointer affine);
   };
 } // namespace mitk
 #endif //NAVIGATIONTOOLWRITER

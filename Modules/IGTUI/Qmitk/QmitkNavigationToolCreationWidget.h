@@ -88,6 +88,7 @@ signals:
   void OnLoadSurface();
   void OnEditToolTip();
   void OnEditToolTipFinished(mitk::AffineTransform3D::Pointer toolTip);
+  void OnApplyRegistrationMatrix();
 
   void OnCancel();
   void OnFinished();

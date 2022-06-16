@@ -139,6 +139,9 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
      // set the reference tool index
     m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
+    m_ReferenceFilter->SetName("referenceFilter");
+    m_ReferenceFilter->RegisterAsMicroservice();
+    
   }
   else
   {
@@ -146,6 +149,8 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
       myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter);
   }
 
+  m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
+  m_ToolVisualizationFilter->RegisterAsMicroservice();
   if (m_TrackingDeviceSource.IsNull())
   {
     message = std::string("Cannot connect to device: ") + myTrackingDeviceSourceFactory->GetErrorMessage();
@@ -262,7 +267,14 @@ void QmitkMITKIGTTrackingToolboxViewWorker::DisconnectDevice()
     if (m_TrackingDeviceSource->IsTracking()) { m_TrackingDeviceSource->StopTracking(); }
     m_TrackingDeviceSource->Disconnect();
     m_TrackingDeviceSource->UnRegisterMicroservice();
-
+    if (m_ReferenceFilter.IsNotNull())
+    {
+      m_ReferenceFilter->UnRegisterMicroservice();
+    }
+    if (m_ToolVisualizationFilter.IsNotNull())
+    {
+      m_ToolVisualizationFilter->UnRegisterMicroservice();
+    }
     m_NavigationToolStorage->UnLockStorage();
 
     m_TrackingDeviceSource = nullptr;

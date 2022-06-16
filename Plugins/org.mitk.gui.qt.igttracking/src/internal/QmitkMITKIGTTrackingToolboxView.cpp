@@ -177,8 +177,7 @@ void QmitkMITKIGTTrackingToolboxView::CreateQtPartControl(QWidget *parent)
 
     connect(m_Controls->m_toolselector, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectToolProjection(int)));
 
-
-
+    connect(m_Controls->spinBox_reftool, SIGNAL(valueChanged(int)), this, SLOT(OnRefToolChanged(int)));
 
     //connections for the tracking device configuration widget
     connect(m_Controls->m_ConfigurationWidget, SIGNAL(TrackingDeviceSelectionChanged()), this, SLOT(OnTrackingDeviceChanged()));
@@ -558,6 +557,7 @@ void QmitkMITKIGTTrackingToolboxView::OnConnectFinished(bool success, QString er
   //get data from worker thread
   m_TrackingDeviceData = m_Worker->GetTrackingDeviceData();
   m_ToolVisualizationFilter = m_Worker->GetToolVisualizationFilter();
+  m_ReferenceFilter = m_Worker->GetReferenceFilter();
   if( m_ToolVisualizationFilter.IsNotNull() )
   {
     //Connect the NeedleProjectionFilter to the ToolVisualizationFilter as third filter of the IGT pipeline
@@ -618,6 +618,19 @@ void QmitkMITKIGTTrackingToolboxView::OnDisconnectFinished(bool success, QString
   m_Controls->m_FreezeUnfreezeTrackingButton->setText("Freeze Tracking");
   m_Controls->m_TrackingFrozenLabel->setVisible(false);
   m_connected = false;
+}
+
+void QmitkMITKIGTTrackingToolboxView::OnRefToolChanged(int index)
+{
+  if (m_ReferenceFilter!=nullptr)
+  {
+    m_ReferenceFilter->SetRefToolIndex(index);
+    m_ReferenceFilter->Update();
+  }
+  else
+  {
+    MITK_WARN << "m_ReferenceFilter null";
+  }
 }
 
 void QmitkMITKIGTTrackingToolboxView::OnStartTracking()
@@ -937,7 +950,6 @@ void QmitkMITKIGTTrackingToolboxView::UpdateRenderTrackingTimer()
     mitk::NavigationData::Pointer currentTool = m_ToolVisualizationFilter->GetOutput(i);
     if (currentTool->IsDataValid())
     {
-
       this->m_toolStorage->GetTool(i)->GetDataNode()->SetColor(mitk::IGTColor_VALID);
     }
     else

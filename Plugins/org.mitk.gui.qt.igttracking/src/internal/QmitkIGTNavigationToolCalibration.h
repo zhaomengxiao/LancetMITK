@@ -22,7 +22,7 @@ found in the LICENSE file.
 
 #include "QmitkInteractiveTransformationWidget.h"
 
-
+#include <mitkNavigationDataObjectVisualizationFilter.h>
 #include "ui_QmitkIGTNavigationToolCalibrationControls.h"
 
 #include <mitkNavigationDataRecorder.h>
@@ -62,8 +62,10 @@ public:
   void OnUseComputedPivotPoint();
   void SetToolToCalibrate();
   void SetCalibrationPointer();
+  void SetVisualizationFilter();
   void UpdateTrackingTimer();
   void AddLandmark();
+  void AddICP();
   void SaveCalibratedTool();
   void OnToolCalibrationMethodChanged(int index);
   void OnStartManualToolTipCalibration();
@@ -90,10 +92,13 @@ protected:
   int m_IDToolToCalibrate; //<<< id of tool that will be calibrated (of the navigation data source)
   mitk::NavigationDataSource::Pointer m_NavigationDataSourceOfToolToCalibrate; //<<< navigation data source of the tool that will be calibrated
   mitk::NavigationDataSource::Pointer m_NavigationDataSourceOfCalibrationPointer; //<<< navigation data source of the calibration pointer
+  mitk::NavigationDataObjectVisualizationFilter::Pointer m_VisualizationFilter;
   mitk::DataNode::Pointer m_ToolSurfaceInToolCoordinatesDataNode; //<<< holds the tool surface in tool coordinates (for preview purposes)
   int m_IDCalibrationPointer; //<<< id of the calibration pointer (of the corresponding navigation data source)
   QTimer* m_TrackingTimer; //<<< tracking timer that updates the status widgets
   void ApplyToolTipTransform(mitk::NavigationData::Pointer ToolTipTransformInToolCoordinates, std::string message = "Tool was updated with the calibrated tool tip!"); //<<< applys the given tool tip transform to the tool to calibrate
+  void ApplyToolRegistrationMatrix(mitk::AffineTransform3D::Pointer transform,
+                             std::string message = "Tool was updated with the registration matrix!"); 
   bool CheckInitialization(bool CalibrationPointerRequired = true); //<<< checks if the tool to calibrate and (if required) the calibration pointer is initialized. Displays a warning and returns false if not.
   mitk::NavigationData::Pointer m_ComputedToolTipTransformation; //<<< holds the new tooltip transformation after it was computed to write it into the tool later
 
@@ -128,6 +133,10 @@ protected:
   mitk::DataNode::Pointer m_CalibrationLandmarksNode;
   mitk::PointSet::Pointer m_RegistrationLandmarks;
   mitk::DataNode::Pointer m_RegistrationLandmarksNode;
+
+  // members for the tool icp calibration
+  mitk::PointSet::Pointer m_RegistrationIcpPoints;
+  mitk::DataNode::Pointer m_RegistrationIcpPointsNode;
 
   //members and helper methods for tool axis calibration
   mitk::Vector3D m_CalibratedToolAxis;

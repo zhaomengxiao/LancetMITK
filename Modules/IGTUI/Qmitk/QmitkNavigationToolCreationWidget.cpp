@@ -98,8 +98,11 @@ void QmitkNavigationToolCreationWidget::CreateConnections()
     connect((QObject*)(m_ToolTransformationWidget), SIGNAL(EditToolTipFinished(mitk::AffineTransform3D::Pointer)), this,
       SLOT(OnEditToolTipFinished(mitk::AffineTransform3D::Pointer)));
 
+    connect(m_Controls->pushButton_applyRegMatrix, SIGNAL(clicked()), this, SLOT(OnApplyRegistrationMatrix()));
+
     connect((QObject*)(m_Controls->m_cancel), SIGNAL(clicked()), this, SLOT(OnCancel()));
     connect((QObject*)(m_Controls->m_finished), SIGNAL(clicked()), this, SLOT(OnFinished()));
+    
   }
 }
 
@@ -114,6 +117,7 @@ void QmitkNavigationToolCreationWidget::Initialize(mitk::DataStorage* dataStorag
   //Create new tool, which should be edited/created
   m_ToolToBeEdited = nullptr;//Reset
   m_ToolToBeEdited = mitk::NavigationTool::New();//Reinitialize
+
   m_ToolToBeEdited->SetIdentifier(supposedIdentifier);
 
   m_ToolToBeEdited->GetDataNode()->SetName(supposedName);
@@ -190,6 +194,32 @@ void QmitkNavigationToolCreationWidget::SetGuiElements()
     QString::number(m_ToolToBeEdited->GetToolAxisOrientation()[2], 'f', 2) + ", " +
     QString::number(m_ToolToBeEdited->GetToolAxisOrientation()[3], 'f', 2) + "]";
   m_Controls->m_ToolTipLabel->setText(_label);
+
+  //registration matrix
+  mitk::AffineTransform3D::Pointer affine = m_ToolToBeEdited->GetToolRegistrationMatrix();
+  if (affine.IsNotNull())
+  {
+    auto matrix = affine->GetMatrix();
+    auto vec = affine->GetOffset();
+    m_Controls->lineEdit_offsetMatrix_0->setText(QString::number(matrix[0][0]));
+    m_Controls->lineEdit_offsetMatrix_1->setText(QString::number(matrix[1][0]));
+    m_Controls->lineEdit_offsetMatrix_2->setText(QString::number(matrix[2][0]));
+    m_Controls->lineEdit_offsetMatrix_3->setText(QString::number(0.0));
+    m_Controls->lineEdit_offsetMatrix_4->setText(QString::number(matrix[0][1]));
+    m_Controls->lineEdit_offsetMatrix_5->setText(QString::number(matrix[1][1]));
+    m_Controls->lineEdit_offsetMatrix_6->setText(QString::number(matrix[2][1]));
+    m_Controls->lineEdit_offsetMatrix_7->setText(QString::number(0.0));
+    m_Controls->lineEdit_offsetMatrix_8->setText(QString::number(matrix[0][2]));
+    m_Controls->lineEdit_offsetMatrix_9->setText(QString::number(matrix[1][2]));
+    m_Controls->lineEdit_offsetMatrix_10->setText(QString::number(matrix[2][2]));
+    m_Controls->lineEdit_offsetMatrix_11->setText(QString::number(0.0));
+    m_Controls->lineEdit_offsetMatrix_12->setText(QString::number(vec[0]));
+    m_Controls->lineEdit_offsetMatrix_13->setText(QString::number(vec[1]));
+    m_Controls->lineEdit_offsetMatrix_14->setText(QString::number(vec[2]));
+    m_Controls->lineEdit_offsetMatrix_15->setText(QString::number(1.0));
+    
+  }
+  
 
   //Undo block signals. Don't remove it, if signals are still blocked at the beginning of this function!
   m_Controls->m_TrackingDeviceTypeChooser->blockSignals(false);
@@ -348,6 +378,32 @@ void QmitkNavigationToolCreationWidget::OnEditToolTipFinished(mitk::AffineTransf
       QString::number(m_ToolToBeEdited->GetToolAxisOrientation()[3], 'f', 2) + "]";
     m_Controls->m_ToolTipLabel->setText(_label);
   }
+}
+
+void QmitkNavigationToolCreationWidget::OnApplyRegistrationMatrix()
+{
+  //get data form UI
+  mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
+
+  itk::Matrix<double> matrix;
+  matrix[0][0] = m_Controls->lineEdit_offsetMatrix_0->text().toDouble();
+  matrix[1][0] = m_Controls->lineEdit_offsetMatrix_1->text().toDouble();
+  matrix[2][0] = m_Controls->lineEdit_offsetMatrix_2->text().toDouble();
+  matrix[0][1] = m_Controls->lineEdit_offsetMatrix_4->text().toDouble();
+  matrix[1][1] = m_Controls->lineEdit_offsetMatrix_5->text().toDouble();
+  matrix[2][1] = m_Controls->lineEdit_offsetMatrix_6->text().toDouble();
+  matrix[0][2] = m_Controls->lineEdit_offsetMatrix_8->text().toDouble();
+  matrix[1][2] = m_Controls->lineEdit_offsetMatrix_9->text().toDouble();
+  matrix[2][2] = m_Controls->lineEdit_offsetMatrix_10->text().toDouble();
+  itk::Vector<double> vector;
+  vector[0] = m_Controls->lineEdit_offsetMatrix_12->text().toDouble();
+  vector[1] = m_Controls->lineEdit_offsetMatrix_13->text().toDouble();
+  vector[2] = m_Controls->lineEdit_offsetMatrix_14->text().toDouble();
+
+  affine->SetMatrix(matrix);
+  affine->SetOffset(vector);
+
+  m_ToolToBeEdited->SetToolRegistrationMatrix(affine);
 }
 
 void QmitkNavigationToolCreationWidget::FillUIToolLandmarkLists(mitk::PointSet::Pointer calLandmarks, mitk::PointSet::Pointer regLandmarks)

@@ -26,19 +26,22 @@ found in the LICENSE file.
 #include "mitkManualPlacementAnnotationRenderer.h"
 #include "mitkBaseRenderer.h"
 
-mitk::NavigationTool::NavigationTool() : m_Identifier("None"),
-m_Type(mitk::NavigationTool::Unknown),
-m_CalibrationFile("none"),
-m_SerialNumber(""),
-m_TrackingDeviceType(mitk::UnspecifiedTrackingTypeInformation::GetTrackingDeviceName()),
-m_ToolLandmarks(mitk::PointSet::New()),
-m_ToolControlPoints(mitk::PointSet::New()),
-m_ToolAxisOrientation(mitk::Quaternion(0, 0, 0, 1))
+mitk::NavigationTool::NavigationTool()
+  : m_Identifier("None"),
+    m_Type(mitk::NavigationTool::Unknown),
+    m_CalibrationFile("none"),
+    m_SerialNumber(""),
+    m_TrackingDeviceType(mitk::UnspecifiedTrackingTypeInformation::GetTrackingDeviceName()),
+    m_ToolLandmarks(mitk::PointSet::New()),
+    m_ToolControlPoints(mitk::PointSet::New()),
+    m_ToolAxisOrientation(mitk::Quaternion(0, 0, 0, 1)),
+    m_ToolRegistrationMatrix(mitk::AffineTransform3D::New())
 {
   m_ToolTipPosition[0] = 0;
   m_ToolTipPosition[1] = 0;
   m_ToolTipPosition[2] = 0;
-
+  //MITK_INFO << "Init Navigation Tool";
+  //MITK_INFO << m_ToolRegistrationMatrix;
   SetDefaultSurface();
 }
 
@@ -75,6 +78,8 @@ mitk::NavigationTool::NavigationTool(const NavigationTool &other)
     this->m_ToolControlPoints = other.m_ToolControlPoints->Clone();
   this->m_ToolTipPosition = other.m_ToolTipPosition;
   this->m_ToolAxisOrientation = other.m_ToolAxisOrientation;
+  if (other.m_ToolRegistrationMatrix.IsNotNull())
+    this->m_ToolRegistrationMatrix = other.m_ToolRegistrationMatrix->Clone();
 }
 
 mitk::NavigationTool::~NavigationTool()
@@ -345,14 +350,23 @@ std::string mitk::NavigationTool::GetStringWithAllToolInformation() const
 {
   std::stringstream _info;
   _info << "  Identifier: " << this->m_Identifier << "\n"
-    << "  NavigationToolType: " << m_Type << "\n"
-    << "  Calibration file: " << m_CalibrationFile << "\n"
-    << "  Serial number: " << m_SerialNumber << "\n"
-    << "  TrackingDeviceType: " << m_TrackingDeviceType << "\n"
-    << "  ToolTip Position: " << m_ToolTipPosition << "\n"
-    << "  Tool Axis Orientation: " << m_ToolAxisOrientation << "\n"
-    << "  Tool Axis: " <<   m_ToolAxisOrientation.inverse().rotate(vnl_vector_fixed<mitk::ScalarType,3>(0.0,0.0,-1.0))
-    ;
+        << "  NavigationToolType: " << m_Type << "\n"
+        << "  Calibration file: " << m_CalibrationFile << "\n"
+        << "  Serial number: " << m_SerialNumber << "\n"
+        << "  TrackingDeviceType: " << m_TrackingDeviceType << "\n"
+        << "  ToolTip Position: " << m_ToolTipPosition << "\n"
+        << "  Tool Axis Orientation: " << m_ToolAxisOrientation << "\n"
+        << "  Tool Axis: "
+        << m_ToolAxisOrientation.inverse().rotate(vnl_vector_fixed<mitk::ScalarType, 3>(0.0, 0.0, -1.0)) << "\n"
+        << "Tool Registration Matrix: "<< "\n"
+        << "R: "<< "\n";
 
+
+  m_ToolRegistrationMatrix->GetMatrix().GetVnlMatrix().print(_info);
+
+  _info << "V: "
+        << "\n";
+  auto offset = m_ToolRegistrationMatrix->GetOffset();
+  _info << offset[0] << " " << offset[1] << " " << offset[2];
   return _info.str();
 }
