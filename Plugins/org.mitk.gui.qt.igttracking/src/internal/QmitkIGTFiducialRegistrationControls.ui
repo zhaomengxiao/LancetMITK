@@ -151,7 +151,7 @@
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Spine CT preparation</string>
+       <string>Spine testing</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="2" column="0">
@@ -173,12 +173,29 @@
           <string>Display CT relative to the tracking DRF</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_5">
+          <item row="7" column="0">
+           <widget class="QPushButton" name="pushButton_createNdiDataCarrier">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Tool Pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Create an NDI data carrier (Image calibrator marker)</string>
             </property>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Reference (Image calibrator marker) Pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QPushButton" name="pushButton_prepareCT">
+            <property name="text">
+             <string>Display CT according to trackingDRF</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QmitkNavigationDataSourceSelectionWidget" name="m_TrackingDeviceSelectionWidget_sawcalib" native="true"/>
           </item>
           <item row="4" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -211,13 +228,6 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Reference Pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
@@ -249,13 +259,6 @@
             </item>
            </layout>
           </item>
-          <item row="6" column="0">
-           <widget class="QPushButton" name="pushButton_prepareCT">
-            <property name="text">
-             <string>Display CT according to trackingDRF</string>
-            </property>
-           </widget>
-          </item>
           <item row="5" column="0">
            <widget class="Line" name="line_3">
             <property name="orientation">
@@ -263,8 +266,19 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QmitkNavigationDataSourceSelectionWidget" name="m_TrackingDeviceSelectionWidget_sawcalib" native="true"/>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Tool (Probe) Pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>Create an NDI data carrier (Probe)</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

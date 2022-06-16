@@ -36,6 +36,7 @@ found in the LICENSE file.
 #include <usGetModuleContext.h>
 #include "usServiceReference.h"
 #include <vtkQuaternion.h>
+#include <vtkSphereSource.h>
 
 const std::string QmitkIGTFiducialRegistration::VIEW_ID = "org.mitk.views.IGTFiducialRegistration";
 
@@ -57,6 +58,9 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl( QWidget *parent )
   connect(m_Controls.m_ChooseSelectedPointer_tool, SIGNAL(clicked()), this, SLOT(ToolSelect()));
   connect(m_Controls.m_ChooseSelectedPointer_reference, SIGNAL(clicked()), this, SLOT(ReferenceSelect()));
   connect(m_Controls.pushButton_prepareCT, SIGNAL(clicked()), this, SLOT(PrepareCT()));
+  connect(m_Controls.pushButton_createNdiDataCarrier, SIGNAL(clicked()), this, SLOT(CreateNdiDataCarrier()));
+  connect(m_Controls.pushButton, SIGNAL(clicked()), this, SLOT(CreateNdiDataCarrier2()));
+  
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();
 
@@ -202,6 +206,61 @@ void QmitkIGTFiducialRegistration::PrepareCT()
   {
     m_Controls.textBrowser_prepareCt->setText("CT DRF is not valid");
   }
+}
+
+void QmitkIGTFiducialRegistration::CreateNdiDataCarrier()
+{
+  auto ReferenceMatrix = getVtkMatrix4x4(m_ReferenceNDPointer);
+
+  auto tmpSource = vtkSphereSource::New();
+  tmpSource->SetCenter(0,0,0);
+  tmpSource->SetRadius(7);
+  tmpSource->Update();
+
+  auto targetNode = mitk::DataNode::New();
+  auto tmpSurface = mitk::Surface::New();
+  tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
+  
+  targetNode->SetData(tmpSurface);
+  targetNode->SetName("NDIdata image calibrator");
+  targetNode->SetColor(1.0, 1.0, 1.0);
+  targetNode->SetVisibility(true);
+  targetNode->SetOpacity(1.0);
+  GetDataStorage()->Add(targetNode);
+
+  GetDataStorage()
+    ->GetNamedNode("NDIdata image calibrator")
+    ->GetData()
+    ->GetGeometry()
+    ->SetIndexToWorldTransformByVtkMatrix(ReferenceMatrix);
+	  
+}
+
+void QmitkIGTFiducialRegistration::CreateNdiDataCarrier2()
+{
+  auto toolMatrix = getVtkMatrix4x4(m_ToolNDPointer);
+
+  auto tmpSource = vtkSphereSource::New();
+  tmpSource->SetCenter(0, 0, 0);
+  tmpSource->SetRadius(7);
+  tmpSource->Update();
+
+  auto targetNode = mitk::DataNode::New();
+  auto tmpSurface = mitk::Surface::New();
+  tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
+
+  targetNode->SetData(tmpSurface);
+  targetNode->SetName("NDIdata probe");
+  targetNode->SetColor(1.0, 1.0, 1.0);
+  targetNode->SetVisibility(true);
+  targetNode->SetOpacity(1.0);
+  GetDataStorage()->Add(targetNode);
+
+  GetDataStorage()
+    ->GetNamedNode("NDIdata probe")
+    ->GetData()
+    ->GetGeometry()
+    ->SetIndexToWorldTransformByVtkMatrix(toolMatrix);
 }
 
 

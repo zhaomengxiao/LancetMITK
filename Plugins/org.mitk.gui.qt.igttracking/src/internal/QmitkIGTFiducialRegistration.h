@@ -58,6 +58,8 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void ReferenceSelect(); // Reference refers to the tracking DRF
   void ToolSelect(); // Tool refers to the CtDrf
   void PrepareCT(); // Display the patient CT relative to the tracking DRF coordinate system. Here, the tracking DRF is the reference, the CtDrf is the tool
+  void CreateNdiDataCarrier();
+  void CreateNdiDataCarrier2();
 
   protected:
 
