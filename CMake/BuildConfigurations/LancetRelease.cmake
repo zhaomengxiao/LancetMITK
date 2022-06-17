@@ -3,7 +3,7 @@ message(STATUS "Configuring Lancet Build")
 #include(${CMAKE_CURRENT_LIST_DIR}/Default.cmake)
 
 set(MITK_CONFIG_PACKAGES ${MITK_CONFIG_PACKAGES}
-  MatchPoint
+  
   OpenMesh
   Qt5
   BLUEBERRY

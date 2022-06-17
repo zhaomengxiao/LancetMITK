@@ -137,11 +137,13 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
     m_TrackingDeviceSource =
       myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter, m_ReferenceFilter);
 
-     // set the reference tool index
-    m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
-    m_ReferenceFilter->SetName("referenceFilter");
-    m_ReferenceFilter->RegisterAsMicroservice();
-    
+    if (m_ReferenceFilter.IsNotNull())
+    {
+        // set the reference tool index
+        m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
+        m_ReferenceFilter->SetName("referenceFilter");
+        m_ReferenceFilter->RegisterAsMicroservice();
+    }
   }
   else
   {
@@ -149,8 +151,12 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
       myTrackingDeviceSourceFactory->CreateTrackingDeviceSource(m_ToolVisualizationFilter);
   }
 
-  m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
-  m_ToolVisualizationFilter->RegisterAsMicroservice();
+  if (m_ToolVisualizationFilter.IsNotNull())
+  {
+      m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
+      m_ToolVisualizationFilter->RegisterAsMicroservice();
+  }
+
   if (m_TrackingDeviceSource.IsNull())
   {
     message = std::string("Cannot connect to device: ") + myTrackingDeviceSourceFactory->GetErrorMessage();
