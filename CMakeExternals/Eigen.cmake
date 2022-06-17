@@ -17,8 +17,8 @@ if(MITK_USE_Eigen)
 
     ExternalProject_Add(${proj}
       LIST_SEPARATOR ${sep}
-      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/eigen-3.4.0.tar.gz
-      URL_MD5 4c527a9171d71a72a9d4186e65bea559
+      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/Eigen.tar.gz
+      URL_MD5 a750355c9e9f4dcdef11f43c62992b8c
       CMAKE_GENERATOR ${gen}
       CMAKE_GENERATOR_PLATFORM ${gen_platform}
       CMAKE_ARGS
