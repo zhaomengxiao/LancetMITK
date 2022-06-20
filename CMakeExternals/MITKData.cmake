@@ -18,7 +18,8 @@ if(BUILD_TESTING)
 
   ExternalProject_Add(${proj}
     SOURCE_DIR ${proj}
-    GIT_REPOSITORY https://phabricator.mitk.org/source/mitkdata.git
+    URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/mitkdata.zip
+    URL_MD5 2aa530711737733fcd6885bf6d29b3b2
 #   GIT_TAG ${revision_tag}
 #   URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/mitk-data_${revision_tag}.tar.gz
 #   UPDATE_COMMAND ""

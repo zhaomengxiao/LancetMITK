@@ -28,8 +28,8 @@ if(MITK_USE_lz4)
 
     ExternalProject_Add(${proj}
       LIST_SEPARATOR ${sep}
-      GIT_REPOSITORY https://github.com/lz4/lz4.git
-      GIT_TAG v1.9.3
+      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/lz4.tar.gz
+      URL_MD5 c65c5194bda4b8d48142e477bbba69a6
       SOURCE_SUBDIR build/cmake
       CMAKE_GENERATOR ${gen}
       CMAKE_GENERATOR_PLATFORM ${gen_platform}

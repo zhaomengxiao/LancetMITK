@@ -51,8 +51,8 @@ if(MITK_USE_CTK)
 
     ExternalProject_Add(${proj}
       LIST_SEPARATOR ${sep}
-      GIT_REPOSITORY https://github.com/commontk/CTK
-      GIT_TAG ${revision_tag}
+      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/CTK.tar.gz
+      URL_MD5 faa80bdf814cffbe095895ff31f812ac
       UPDATE_COMMAND ""
       INSTALL_COMMAND ""
       CMAKE_GENERATOR ${gen}
