@@ -5,7 +5,7 @@ option(MITK_USE_OPTITRACK_TRACKER "Enable support for Optitrack tracker hardware
 
 option(MITK_USE_POLHEMUS_TRACKER "Enable support for Polhemus tracker hardware" OFF)
 
-option(MITK_USE_VEGA_TRACKER "Enable support for NDI VEGA tracker hardware" ON)
+#option(MITK_USE_VEGA_TRACKER "Enable support for NDI VEGA tracker hardware" ON)
 
 # only if MicronTracker is enabled
 if(MITK_USE_MICRON_TRACKER)
@@ -50,13 +50,13 @@ if(WIN32)
 endif(WIN32)
 
 #only if VEGA is enabled
-if(MITK_USE_VEGA_TRACKER)
-  find_library(MITK_VEGA_TRACKER_LIB CAPIcommon DOC "Path which contains the vega library."
-  HINTS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin"
-  )
-  find_path(
-    MITK_VEGA_TRACKER_INCLUDE_DIR CombinedApi.h DOC  "Include directory of the vega library."
-    HINTS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin/include"
-  )
-ENDIF(MITK_USE_VEGA_TRACKER)
+# if(MITK_USE_VEGA_TRACKER)
+#   find_library(MITK_VEGA_TRACKER_LIB CAPIcommon DOC "Path which contains the vega library."
+#   HINTS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin"
+#   )
+#   find_path(
+#     MITK_VEGA_TRACKER_INCLUDE_DIR CombinedApi.h DOC  "Include directory of the vega library."
+#     HINTS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin/include"
+#   )
+# ENDIF(MITK_USE_VEGA_TRACKER)
 #End VEGA Hardware
