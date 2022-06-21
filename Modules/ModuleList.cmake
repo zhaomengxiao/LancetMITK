@@ -36,6 +36,7 @@ set(MITK_MODULES
   MatchPointRegistrationUI
   Classification
   OpenIGTLink
+  LancetVegaAPI
   IGTBase
   IGT
   CameraCalibration
