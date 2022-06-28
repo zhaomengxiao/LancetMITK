@@ -18,6 +18,15 @@ if(MITK_USE_CTK)
     set(revision_tag "7210c5bc")
 
     set(ctk_optional_cache_args )
+
+    #locol ep
+    if(MITK_Local_EP)
+      #set(qRestAPI_URL ${MITK_LOCAL_EP_PATH}/qRestAPI.zip)
+      list(APPEND ctk_optional_cache_args
+           -DqRestAPI_URL:PATH=${MITK_LOCAL_EP_PATH}/qRestAPI.zip
+      )
+    endif()
+
     if(MITK_USE_Python3)
       list(APPEND ctk_optional_cache_args
            -DCTK_LIB_Scripting/Python/Widgets:BOOL=ON
@@ -51,8 +60,8 @@ if(MITK_USE_CTK)
 
     ExternalProject_Add(${proj}
       LIST_SEPARATOR ${sep}
-      GIT_REPOSITORY https://github.com/commontk/CTK
-      GIT_TAG ${revision_tag}
+      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/CTK.tar.gz
+      URL_MD5 faa80bdf814cffbe095895ff31f812ac
       UPDATE_COMMAND ""
       INSTALL_COMMAND ""
       CMAKE_GENERATOR ${gen}

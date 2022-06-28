@@ -12,8 +12,8 @@ if(MITK_USE_${proj})
 
   if(NOT DEFINED ${proj}_DIR AND NOT ZLIB_FOUND)
     ExternalProject_Add(${proj}
-      GIT_REPOSITORY https://github.com/madler/zlib.git
-      GIT_TAG v1.2.11
+      URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/zlib-1.2.11.zip
+      URL_MD5 9d6a627693163bbbf3f26403a3a0b0b1
       CMAKE_GENERATOR ${gen}
       CMAKE_GENERATOR_PLATFORM ${gen_platform}
       CMAKE_ARGS ${ep_common_args}

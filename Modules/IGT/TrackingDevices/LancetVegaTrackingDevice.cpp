@@ -455,14 +455,14 @@ namespace mitk
     code *= -1; // restore the errorCode to a positive value
     if (code > 1000)
     {
-      //std::string errString = CombinedApi::errorToString(code);
-      MITK_WARN(message) << code /*<< errString*/;
+      std::string errString = CombinedApi::errorToString(code *= -1);
+      MITK_WARN(message) << code << errString;
       return false;
     }
     else
     {
-      //std::string errString = CombinedApi::errorToString(code);
-      MITK_ERROR(message) << code /*<< errString*/;
+      std::string errString = CombinedApi::errorToString(code *= -1);
+      MITK_ERROR(message) << code << errString;
       return true;
     }
   }
