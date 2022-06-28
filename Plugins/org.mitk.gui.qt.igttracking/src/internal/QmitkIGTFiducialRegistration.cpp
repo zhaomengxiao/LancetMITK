@@ -212,24 +212,24 @@ void QmitkIGTFiducialRegistration::CreateNdiDataCarrier()
 {
   auto ReferenceMatrix = getVtkMatrix4x4(m_ReferenceNDPointer);
 
-  auto tmpSource = vtkSphereSource::New();
-  tmpSource->SetCenter(0,0,0);
-  tmpSource->SetRadius(7);
-  tmpSource->Update();
-
-  auto targetNode = mitk::DataNode::New();
-  auto tmpSurface = mitk::Surface::New();
-  tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
-  
-  targetNode->SetData(tmpSurface);
-  targetNode->SetName("NDIdata image calibrator");
-  targetNode->SetColor(1.0, 1.0, 1.0);
-  targetNode->SetVisibility(true);
-  targetNode->SetOpacity(1.0);
-  GetDataStorage()->Add(targetNode);
+  // auto tmpSource = vtkSphereSource::New();
+  // tmpSource->SetCenter(0,0,0);
+  // tmpSource->SetRadius(7);
+  // tmpSource->Update();
+  //
+  // auto targetNode = mitk::DataNode::New();
+  // auto tmpSurface = mitk::Surface::New();
+  // tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
+  //
+  // targetNode->SetData(tmpSurface);
+  // targetNode->SetName("NDIdata image calibrator");
+  // targetNode->SetColor(1.0, 1.0, 1.0);
+  // targetNode->SetVisibility(true);
+  // targetNode->SetOpacity(1.0);
+  // GetDataStorage()->Add(targetNode);
 
   GetDataStorage()
-    ->GetNamedNode("NDIdata image calibrator")
+    ->GetNamedNode("NDI calibrator")
     ->GetData()
     ->GetGeometry()
     ->SetIndexToWorldTransformByVtkMatrix(ReferenceMatrix);
@@ -240,24 +240,24 @@ void QmitkIGTFiducialRegistration::CreateNdiDataCarrier2()
 {
   auto toolMatrix = getVtkMatrix4x4(m_ToolNDPointer);
 
-  auto tmpSource = vtkSphereSource::New();
-  tmpSource->SetCenter(0, 0, 0);
-  tmpSource->SetRadius(7);
-  tmpSource->Update();
-
-  auto targetNode = mitk::DataNode::New();
-  auto tmpSurface = mitk::Surface::New();
-  tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
-
-  targetNode->SetData(tmpSurface);
-  targetNode->SetName("NDIdata probe");
-  targetNode->SetColor(1.0, 1.0, 1.0);
-  targetNode->SetVisibility(true);
-  targetNode->SetOpacity(1.0);
-  GetDataStorage()->Add(targetNode);
+  // auto tmpSource = vtkSphereSource::New();
+  // tmpSource->SetCenter(0, 0, 0);
+  // tmpSource->SetRadius(7);
+  // tmpSource->Update();
+  //
+  // auto targetNode = mitk::DataNode::New();
+  // auto tmpSurface = mitk::Surface::New();
+  // tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
+  //
+  // targetNode->SetData(tmpSurface);
+  // targetNode->SetName("NDIdata probe");
+  // targetNode->SetColor(1.0, 1.0, 1.0);
+  // targetNode->SetVisibility(true);
+  // targetNode->SetOpacity(1.0);
+  // GetDataStorage()->Add(targetNode);
 
   GetDataStorage()
-    ->GetNamedNode("NDIdata probe")
+    ->GetNamedNode("NDI probe")
     ->GetData()
     ->GetGeometry()
     ->SetIndexToWorldTransformByVtkMatrix(toolMatrix);
