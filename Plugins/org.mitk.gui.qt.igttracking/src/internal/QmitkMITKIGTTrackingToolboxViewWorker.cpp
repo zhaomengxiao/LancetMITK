@@ -54,6 +54,11 @@ void QmitkMITKIGTTrackingToolboxViewWorker::SetNavigationToolStorage(mitk::Navig
   m_NavigationToolStorage = n;
 }
 
+void QmitkMITKIGTTrackingToolboxViewWorker::SetNavigationObject(lancet::NavigationObject::Pointer n)
+{
+  m_NavigationObject = n;
+}
+
 void QmitkMITKIGTTrackingToolboxViewWorker::SetRefCoordMode(bool mode)
 {
   m_RefCoordMode = mode;
@@ -133,7 +138,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
   //Create Navigation Data Source with the factory class
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer myTrackingDeviceSourceFactory =
-    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_NavigationToolStorage, trackingDevice);
+    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_NavigationToolStorage, trackingDevice,m_NavigationObject);
   if (m_RefCoordMode)
   {
     m_TrackingDeviceSource =

@@ -23,6 +23,7 @@ found in the LICENSE file.
 
 //mitk headers
 #include <mitkNavigationToolStorage.h>
+#include <lancetNavigationObject.h>
 //#include <mitkNavigationDataObjectVisualizationFilter.h>
 #include <lancetNavigationObjectVisualizationFilter.h>
 #include <mitkNavigationDataRecorder.h>
@@ -74,6 +75,7 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
                corrupt or not valid the user gets an error message. If the file was loaded successfully the tools are show in the tool status widget. */
     void OnLoadTools();
 
+    void OnSetNavObj();
     /** Starts tracking if tracking is stopped / stops tracking if tracking is started. */
     void OnStartStopTracking();
 
@@ -192,6 +194,7 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
     int m_loggedFrames; ///> stores the current number of logged frames if logging is on
 
     mitk::NavigationToolStorage::Pointer m_toolStorage;  ///>stores the loaded tools
+    lancet::NavigationObject::Pointer m_NavigationObject; ///>stores the loaded tools
     mitk::DataNode::Pointer m_TrackingVolumeNode;        ///>holds the data node of the tracking volume if volume is visualized
     bool lastTrackingVolumeState;                        ///>temporary holds the state of the tracking volume (activated/not activated) during some methods
 

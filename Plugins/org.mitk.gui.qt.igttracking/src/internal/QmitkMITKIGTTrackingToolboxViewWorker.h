@@ -18,6 +18,7 @@ found in the LICENSE file.
 //mitk headers
 #include <mitkNavigationToolStorage.h>
 #include <mitkTrackingDeviceSource.h>
+#include <lancetNavigationObject.h>
 //#include <mitkNavigationDataObjectVisualizationFilter.h>
 #include <lancetNavigationObjectVisualizationFilter.h>
 #include <lancetNavigationDataInReferenceCoordFilter.h>
@@ -49,6 +50,7 @@ public:
   void SetInverseMode(bool mode);
   void SetTrackingDeviceData(mitk::TrackingDeviceData d);
   void SetNavigationToolStorage(mitk::NavigationToolStorage::Pointer n);
+  void SetNavigationObject(lancet::NavigationObject::Pointer n);
   void SetRefCoordMode(bool mode);
   void SetRefToolIndex(int index);
 
@@ -75,6 +77,7 @@ protected:
   WorkerMethod m_WorkerMethod;
   mitk::DataStorage::Pointer m_DataStorage;
   mitk::NavigationToolStorage::Pointer m_NavigationToolStorage;
+  lancet::NavigationObject::Pointer m_NavigationObject;
 
   //members for the filter pipeline which is created in the worker thread during ConnectDevice()
   mitk::TrackingDeviceSource::Pointer m_TrackingDeviceSource; ///> member for the source of the IGT pipeline
