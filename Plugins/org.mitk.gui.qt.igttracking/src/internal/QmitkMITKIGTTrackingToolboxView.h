@@ -23,7 +23,8 @@ found in the LICENSE file.
 
 //mitk headers
 #include <mitkNavigationToolStorage.h>
-#include <mitkNavigationDataObjectVisualizationFilter.h>
+//#include <mitkNavigationDataObjectVisualizationFilter.h>
+#include <lancetNavigationObjectVisualizationFilter.h>
 #include <mitkNavigationDataRecorder.h>
 #include <mitkNavigationDataToIGTLMessageFilter.h>
 #include <mitkIGTLServer.h>
@@ -205,8 +206,8 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
 
    //members for the filter pipeline
    mitk::TrackingDeviceData m_TrackingDeviceData; ///> stores the tracking device data as long as this is not handled by the tracking device configuration widget
-   mitk::NavigationDataObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (second filter of the IGT pipeline)
-   mitk::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the NavigationDataInReferenceCoord Filter (second filter of the IGT pipeline)
+   lancet::NavigationObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (second filter of the IGT pipeline)
+   lancet::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the NavigationDataInReferenceCoord Filter (second filter of the IGT pipeline)
    mitk::NavigationDataRecorder::Pointer m_loggingFilter; ///> holds the logging filter if logging is on (third filter of the IGT pipeline)
    itk::SmartPointer<mitk::NeedleProjectionFilter> m_NeedleProjectionFilter; ///> Contains the needle projection filter which is used for displaying the tool projection and the tool axis during tracking (optional third filter of the IGT pipeline). The filter is updated in the method UpdateRenderTrackingTimer().
 

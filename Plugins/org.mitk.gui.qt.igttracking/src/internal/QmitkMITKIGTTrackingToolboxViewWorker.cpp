@@ -13,7 +13,8 @@ found in the LICENSE file.
 // Qmitk
 #include "QmitkMITKIGTTrackingToolboxViewWorker.h"
 
-#include <mitkTrackingDeviceSourceConfigurator.h>
+//#include <mitkTrackingDeviceSourceConfigurator.h>
+#include <lancetTrackingDeviceSourceConfigurator.h>
 
 QmitkMITKIGTTrackingToolboxViewWorker::QmitkMITKIGTTrackingToolboxViewWorker()
 {
@@ -131,7 +132,8 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
   mitk::TrackingDeviceData data = m_TrackingDeviceData;
 
   //Create Navigation Data Source with the factory class
-  mitk::TrackingDeviceSourceConfigurator::Pointer myTrackingDeviceSourceFactory = mitk::TrackingDeviceSourceConfigurator::New(m_NavigationToolStorage, trackingDevice);
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer myTrackingDeviceSourceFactory =
+    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_NavigationToolStorage, trackingDevice);
   if (m_RefCoordMode)
   {
     m_TrackingDeviceSource =
@@ -166,7 +168,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
   //set filter to rotation mode transposed becaus we are working with VNL style quaternions
   if (m_InverseMode)
-    m_ToolVisualizationFilter->SetRotationMode(mitk::NavigationDataObjectVisualizationFilter::RotationTransposed);
+    m_ToolVisualizationFilter->SetRotationMode(lancet::NavigationObjectVisualizationFilter::RotationTransposed);
 
  
   //First check if the created object is valid
