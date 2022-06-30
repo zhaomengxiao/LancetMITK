@@ -58,6 +58,7 @@ QmitkIGTNavigationToolCalibration::~QmitkIGTNavigationToolCalibration()
   //If this is removed, MITK crashes when closing the view:
   m_Controls.m_RegistrationLandmarkWidget->SetPointSetNode(nullptr);
   m_Controls.m_CalibrationLandmarkWidget->SetPointSetNode(nullptr);
+  m_Controls.m_CalibrationICPWidget->SetPointSetNode(nullptr);
 
   //clean up data storage
   this->GetDataStorage()->Remove(m_ToolTipPointPreview);
