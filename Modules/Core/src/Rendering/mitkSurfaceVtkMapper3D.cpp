@@ -359,6 +359,25 @@ void mitk::SurfaceVtkMapper3D::ApplyAllProperties(mitk::BaseRenderer *renderer, 
     else // or just use the 2D image
     {
       vtkTxture->SetInputData(miktTexture->GetVtkImageData());
+
+      // Lancet modification: manipulate texture colormap
+      double scalarsMin = 0;
+      GetDataNode()->GetDoubleProperty("Texture minimum", scalarsMin, renderer);
+
+      double scalarsMax = 1.0;
+      GetDataNode()->GetDoubleProperty("Texture maximum", scalarsMax, renderer);
+
+      vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+      lut->SetRampToLinear();
+      lut->SetTableRange(scalarsMin, scalarsMax);
+      lut->SetSaturationRange(0.0, 0.0);
+      lut->SetHueRange(0.0, 0.0);
+      lut->SetValueRange(0.0, 1.0);
+      lut->Build();
+
+      vtkTxture->SetColorModeToMapScalars();
+      vtkTxture->SetLookupTable(lut);
+      
     }
     // pass the texture to the actor
     ls->m_Actor->SetTexture(vtkTxture);
