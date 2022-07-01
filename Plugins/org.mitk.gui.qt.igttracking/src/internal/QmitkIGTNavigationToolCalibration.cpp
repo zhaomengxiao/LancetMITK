@@ -58,6 +58,7 @@ QmitkIGTNavigationToolCalibration::~QmitkIGTNavigationToolCalibration()
   //If this is removed, MITK crashes when closing the view:
   m_Controls.m_RegistrationLandmarkWidget->SetPointSetNode(nullptr);
   m_Controls.m_CalibrationLandmarkWidget->SetPointSetNode(nullptr);
+  m_Controls.m_CalibrationICPWidget->SetPointSetNode(nullptr);
 
   //clean up data storage
   this->GetDataStorage()->Remove(m_ToolTipPointPreview);
@@ -427,9 +428,22 @@ void QmitkIGTNavigationToolCalibration::ApplyToolRegistrationMatrix(mitk::Affine
   {
     trackingDeviceSource =
       dynamic_cast<mitk::TrackingDeviceSource *>(m_NavigationDataSourceOfToolToCalibrate.GetPointer());
-    mitk::NavigationTool::Pointer navigationTool =
-      trackingDeviceSource->GetToolMetaDataCollection()->GetTool(m_IDToolToCalibrate);
-    navigationTool->SetToolRegistrationMatrix(transform);
+    if (trackingDeviceSource.IsNotNull())
+    {
+      mitk::NavigationTool::Pointer navigationTool =
+        trackingDeviceSource->GetToolMetaDataCollection()->GetTool(m_IDToolToCalibrate);
+      if (navigationTool.IsNotNull())
+      {
+        navigationTool->SetToolRegistrationMatrix(transform);
+      }
+      else 
+           MITK_WARN << " ApplyToolRegistrationMatrix Failed : navigation tool null";
+      
+    }
+    else
+      MITK_WARN
+        << "ApplyToolRegistrationMatrix Failed: TrackingDeviceSource Null";
+   
     if (m_VisualizationFilter.IsNotNull())
     {
       m_VisualizationFilter->SetOffset(m_IDToolToCalibrate, transform);
@@ -855,33 +869,6 @@ void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
     m_RegistrationLandmarks = this->m_Controls.m_RegistrationLandmarkWidget->GetPointSet();
     calibratedTool->SetToolControlPoints(this->m_CalibrationLandmarks);
     calibratedTool->SetToolLandmarks(this->m_RegistrationLandmarks);
-
-    
-     // Do landmarktransform
-    // vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = vtkSmartPointer<vtkLandmarkTransform>::New();
-    // if (m_RegistrationLandmarks->GetSize() >= 3 &&
-    //     m_RegistrationLandmarks->GetSize() == m_CalibrationLandmarks->GetSize())
-    // {
-    //   vtkSmartPointer<vtkPoints> pSource = vtkSmartPointer<vtkPoints>::New();
-    //   vtkSmartPointer<vtkPoints> pTarget = vtkSmartPointer<vtkPoints>::New();
-    //
-    //   for (int i = 0; i < m_CalibrationLandmarks->GetSize(); i++)
-    //   {
-    //     pSource->InsertNextPoint(m_CalibrationLandmarks->GetPoint(i).GetDataPointer());
-    //     pTarget->InsertNextPoint(m_RegistrationLandmarks->GetPoint(i).GetDataPointer());
-    //   }
-    //
-    //   
-    //   landmarkTransform->SetSourceLandmarks(pSource);
-    //   landmarkTransform->SetTargetLandmarks(pTarget);
-    //   landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
-    //   landmarkTransform->Update();
-    // }
-    // else
-    // {
-    //   MITK_ERROR << "not enough points of size of tool control points and tool landmarks not match, aborting tool registration!";
-    //   return;
-    // }
 
     mitk::SurfaceRegistration::Pointer surfaceRegistration = mitk::SurfaceRegistration::New();
     //landmark

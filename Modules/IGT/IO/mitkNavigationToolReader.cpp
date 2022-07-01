@@ -194,6 +194,13 @@ mitk::NavigationTool::Pointer mitk::NavigationToolReader::ConvertDataNodeToNavig
   node->RemoveProperty("ToolTipPosition");
   node->RemoveProperty("ToolAxisOrientation");
 
+  //Tool Registration Matrix
+  mitk::AffineTransform3D::Pointer matrix;
+  std::string toolRegistrationMatrixString;
+  node->GetStringProperty("ToolRegistrationMatrix", toolRegistrationMatrixString);
+  matrix = ConvertStringToAffineTransform(toolRegistrationMatrixString);
+
+  returnValue->SetToolRegistrationMatrix(matrix);
   return returnValue;
 }
 
@@ -255,6 +262,32 @@ mitk::Quaternion mitk::NavigationToolReader::ConvertStringToQuaternion(std::stri
       atof(values.at(3).c_str()));
   }
   return quat;
+}
+
+mitk::AffineTransform3D::Pointer mitk::NavigationToolReader::ConvertStringToAffineTransform(std::string string)
+{
+  std::string valueSeperator = ";";
+  std::vector<std::string> values;
+  split(string, valueSeperator, values);
+  mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
+  if (values.size() == 12)
+  {
+    vnl_matrix_fixed<double, 3, 3> &vnlmat =
+      const_cast<vnl_matrix_fixed<double, 3, 3> &> (affine->GetMatrix().GetVnlMatrix());
+    double data[9];
+    for (int i = 0; i < 9; ++i)
+    {
+      data[i] = atof(values.at(i).c_str());
+    }
+     
+    vnlmat.set(data);
+
+    double data_offset[3]{atof(values.at(9).c_str()), atof(values.at(10).c_str()), atof(values.at(11).c_str())};
+    Vector<double, 3> offset{data_offset};
+
+    affine->SetOffset(offset);
+  }
+  return affine;
 }
 
 void mitk::NavigationToolReader::split(std::string& text, std::string& separators, std::vector<std::string>& words)
