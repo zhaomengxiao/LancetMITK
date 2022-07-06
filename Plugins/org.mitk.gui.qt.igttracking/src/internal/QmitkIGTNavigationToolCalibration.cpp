@@ -879,7 +879,7 @@ void QmitkIGTNavigationToolCalibration::SaveCalibratedTool()
     if (m_RegistrationIcpPoints->GetSize()>0)
     {
       auto surface = m_NavigationDataSourceOfToolToCalibrate->GetToolMetaData(m_IDToolToCalibrate)->GetToolSurface()->Clone();
-      surface->GetGeometry()->SetIdentity(); //<<<use original surface to registration,When tracking start surface geometry will be moved around.
+      surface->GetGeometry()->SetIdentity();///<use original surface to registration,When tracking start surface geometry will be moved around.
       surfaceRegistration->SetIcpPoints(m_RegistrationIcpPoints);
       surfaceRegistration->SetSurfaceSrc(surface);
 
