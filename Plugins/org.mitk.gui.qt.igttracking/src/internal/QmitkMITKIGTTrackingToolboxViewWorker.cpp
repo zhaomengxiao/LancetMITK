@@ -149,7 +149,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
         // set the reference tool index
         m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
         m_ReferenceFilter->SetName("referenceFilter");
-        m_ReferenceFilter->RegisterAsMicroservice();
+        
     }
   }
   else
@@ -161,7 +161,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
   if (m_ToolVisualizationFilter.IsNotNull())
   {
       m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
-      m_ToolVisualizationFilter->RegisterAsMicroservice();
+    m_ToolVisualizationFilter->SetNavigationObject(m_NavigationObject);
   }
 
   if (m_TrackingDeviceSource.IsNull())
@@ -193,6 +193,8 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
     //Microservice registration:
     m_TrackingDeviceSource->SetToolMetaDataCollection(m_NavigationToolStorage);
     m_TrackingDeviceSource->RegisterAsMicroservice();
+    m_ToolVisualizationFilter->RegisterAsMicroservice();
+    m_ReferenceFilter->RegisterAsMicroservice();
     m_NavigationToolStorage->SetSourceID(m_TrackingDeviceSource->GetMicroserviceID()); //DEPRECATED / not needed anymore because NavigationDataSource now holds a member of its tool storage. Only left for backward compatibility.
     m_NavigationToolStorage->LockStorage();
   }
