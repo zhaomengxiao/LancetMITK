@@ -164,7 +164,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
   if (m_ToolVisualizationFilter.IsNotNull())
   {
     m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
-    m_ToolVisualizationFilter->SetNavigationObject(m_NavigationObject);
+    //m_ToolVisualizationFilter->SetNavigationObject(m_NavigationObject);
     m_ToolVisualizationFilter->RegisterAsMicroservice();
   }
 

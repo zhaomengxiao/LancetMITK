@@ -327,6 +327,7 @@ void QmitkMITKIGTTrackingToolboxView::OnSetNavObj()
 {
   lancet::NavigationObject::Pointer navObj = lancet::NavigationObject::New();
   navObj->SetDataNode(GetDataStorage()->GetNamedNode("ball"));
+  navObj->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("test"));
   navObj->SetReferencFrameName("A");
   m_NavigationObject = navObj;
   MITK_INFO << "set nav obj";
