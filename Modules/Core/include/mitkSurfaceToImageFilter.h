@@ -63,6 +63,9 @@ namespace mitk
     itkGetConstMacro(Tolerance, double);
     itkSetMacro(Tolerance, double);
 
+    itkSetMacro(ReverseStencil, bool);
+    itkGetMacro(ReverseStencil, bool);
+
     void GenerateInputRequestedRegion() override;
 
     void GenerateOutputInformation() override;
@@ -90,6 +93,7 @@ namespace mitk
 
     float m_BackgroundValue;
     double m_Tolerance;
+    bool m_ReverseStencil;
   };
 
 } // namespace mitk

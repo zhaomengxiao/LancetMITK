@@ -10,6 +10,18 @@ found in the LICENSE file.
 
 ============================================================================*/
 
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
 #include "mitkSurfaceToImageFilter.h"
 #include "mitkImageWriteAccessor.h"
 #include "mitkTimeHelper.h"
@@ -26,13 +38,15 @@ found in the LICENSE file.
 #include <vtkTransformPolyDataFilter.h>
 
 mitk::SurfaceToImageFilter::SurfaceToImageFilter()
-  : m_MakeOutputBinary(false), m_UShortBinaryPixelType(false), m_BackgroundValue(-10000), m_Tolerance(0.0)
+  : m_MakeOutputBinary(false),
+    m_UShortBinaryPixelType(false),
+    m_BackgroundValue(-10000),
+    m_Tolerance(0.0),
+    m_ReverseStencil(false)
 {
 }
 
-mitk::SurfaceToImageFilter::~SurfaceToImageFilter()
-{
-}
+mitk::SurfaceToImageFilter::~SurfaceToImageFilter() {}
 
 void mitk::SurfaceToImageFilter::GenerateInputRequestedRegion()
 {
@@ -180,17 +194,22 @@ void mitk::SurfaceToImageFilter::Stencil3DImage(int time)
                                                const_cast<mitk::Image *>(this->GetImage())->GetVtkImageData(time);
 
     // fill the image with foreground voxels:
-    unsigned char inval = 1;
-    vtkIdType count = image->GetNumberOfPoints();
-    for (vtkIdType i = 0; i < count; ++i)
-    {
-      image->GetPointData()->GetScalars()->SetTuple1(i, inval);
-    }
+    // bug: only binary need this, line 135 already setted 1;
+    // unsigned char inval = 1;
+    // vtkIdType count = image->GetNumberOfPoints();
+    // for (vtkIdType i = 0; i < count; ++i)
+    // {
+    //   image->GetPointData()->GetScalars()->SetTuple1(i, inval);
+    // }
 
     // Create stencil and use numerical minimum of pixel type as background value
     vtkSmartPointer<vtkImageStencil> stencil = vtkSmartPointer<vtkImageStencil>::New();
     stencil->SetInputData(image);
-    stencil->ReverseStencilOff();
+    if (m_ReverseStencil)
+    {
+      stencil->ReverseStencilOn();
+    }
+
     stencil->ReleaseDataFlagOn();
     stencil->SetStencilConnection(surfaceConverter->GetOutputPort());
 
