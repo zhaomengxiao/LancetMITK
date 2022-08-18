@@ -14,13 +14,13 @@ found in the LICENSE file.
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
 
-//Mitk
+// Mitk
 #include <mitkDataNode.h>
-#include <mitkNodePredicateNot.h>
-#include <mitkNodePredicateProperty.h>
-#include <mitkNodePredicateOr.h>
-#include <mitkNodePredicateDataType.h>
 #include <mitkImageGenerator.h>
+#include <mitkNodePredicateDataType.h>
+#include <mitkNodePredicateNot.h>
+#include <mitkNodePredicateOr.h>
+#include <mitkNodePredicateProperty.h>
 
 // Qmitk
 #include "QmitkIGTFiducialRegistration.h"
@@ -32,25 +32,22 @@ found in the LICENSE file.
 #include <QTimer>
 
 // MicroServices
-#include <usModuleContext.h>
-#include <usGetModuleContext.h>
 #include "usServiceReference.h"
+#include <usGetModuleContext.h>
+#include <usModuleContext.h>
 #include <vtkQuaternion.h>
 #include <vtkSphereSource.h>
 
 const std::string QmitkIGTFiducialRegistration::VIEW_ID = "org.mitk.views.IGTFiducialRegistration";
 
-void QmitkIGTFiducialRegistration::SetFocus()
-{
-}
+void QmitkIGTFiducialRegistration::SetFocus() {}
 
-void QmitkIGTFiducialRegistration::CreateQtPartControl( QWidget *parent )
+void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
 {
-
   // create GUI widgets from the Qt Designer's .ui file
-  m_Controls.setupUi( parent );
+  m_Controls.setupUi(parent);
 
-  //Connect signals and slots
+  // Connect signals and slots
   connect(m_Controls.m_ChooseSelectedPointer, SIGNAL(clicked()), this, SLOT(PointerSelectionChanged()));
   connect(m_Controls.m_ChooseSelectedImage, SIGNAL(clicked()), this, SLOT(ImageSelectionChanged()));
 
@@ -60,28 +57,51 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl( QWidget *parent )
   connect(m_Controls.pushButton_prepareCT, SIGNAL(clicked()), this, SLOT(PrepareCT()));
   connect(m_Controls.pushButton_createNdiDataCarrier, SIGNAL(clicked()), this, SLOT(CreateNdiDataCarrier()));
   connect(m_Controls.pushButton, SIGNAL(clicked()), this, SLOT(CreateNdiDataCarrier2()));
+
+    //----------- Dental--------------
+  m_dentalProbeNDPointer = mitk::NavigationData::New();
+  m_dentalCalibratorDrfNDPointer = mitk::NavigationData::New();
+  m_dentalRobotDrfNDPointer = mitk::NavigationData::New();
+  connect(m_Controls.pushButton_testt, SIGNAL(clicked()), this, SLOT(testtDental()));
+  connect(m_Controls.pushButton_confirmProbe_dental, SIGNAL(clicked()), this, SLOT(ConfirmDentalProbePointer()));
+  connect(m_Controls.pushButton_confirmRobotDrf_dental, SIGNAL(clicked()), this, SLOT(ConfirmDentalRobotDrfPointer()));
+  connect(m_Controls.pushButton_confirmCalibratorDrf_dental,
+          SIGNAL(clicked()),
+          this,
+          SLOT(ConfirmDentalCalibratorDrfPointer()));
+
+  connect(m_Controls.pushButton_checkPoint_1_dental, SIGNAL(clicked()), this, SLOT(CollectCheckPoint1InCalibratorDrf()));
+  connect(
+    m_Controls.pushButton_checkPoint_2_dental, SIGNAL(clicked()), this, SLOT(CollectCheckPoint2InCalibratorDrf()));
+  connect(
+    m_Controls.pushButton_checkPoint_3_dental, SIGNAL(clicked()), this, SLOT(CollectCheckPoint3InCalibratorDrf()));
   
+  connect(m_Controls.pushButton_getFlangeToDrill_dental, SIGNAL(clicked()), this, SLOT(GetDentalFlangeToDrillMatrix()));
+  
+
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();
 
-  //Initialize Combobox
+  // Initialize Combobox
   m_Controls.m_DataStorageComboBox->SetDataStorage(this->GetDataStorage());
   m_Controls.m_DataStorageComboBox->SetAutoSelectNewItems(false);
-  m_Controls.m_DataStorageComboBox->SetPredicate(mitk::NodePredicateOr::New(mitk::NodePredicateDataType::New("Surface"), mitk::NodePredicateDataType::New("Image")));
+  m_Controls.m_DataStorageComboBox->SetPredicate(
+    mitk::NodePredicateOr::New(mitk::NodePredicateDataType::New("Surface"), mitk::NodePredicateDataType::New("Image")));
 
-  //Initialize Fiducial Registration Widget
+  // Initialize Fiducial Registration Widget
   m_Controls.m_FiducialRegistrationWidget->setDataStorage(this->GetDataStorage());
   m_Controls.m_FiducialRegistrationWidget->HideStaticRegistrationRadioButton(true);
   m_Controls.m_FiducialRegistrationWidget->HideContinousRegistrationRadioButton(true);
   m_Controls.m_FiducialRegistrationWidget->HideUseICPRegistrationCheckbox(true);
-
 }
 
 void QmitkIGTFiducialRegistration::InitializeRegistration()
 {
-  foreach(QmitkRenderWindow* renderWindow, this->GetRenderWindowPart(mitk::WorkbenchUtil::OPEN)->GetQmitkRenderWindows().values())
+  foreach (QmitkRenderWindow *renderWindow,
+           this->GetRenderWindowPart(mitk::WorkbenchUtil::OPEN)->GetQmitkRenderWindows().values())
   {
-    this->m_Controls.m_FiducialRegistrationWidget->AddSliceNavigationController(renderWindow->GetSliceNavigationController());
+    this->m_Controls.m_FiducialRegistrationWidget->AddSliceNavigationController(
+      renderWindow->GetSliceNavigationController());
   }
 }
 
@@ -91,7 +111,8 @@ void QmitkIGTFiducialRegistration::PointerSelectionChanged()
   int toolID = m_Controls.m_TrackingDeviceSelectionWidget->GetSelectedToolID();
   m_TrackingPointer = m_Controls.m_TrackingDeviceSelectionWidget->GetSelectedNavigationDataSource()->GetOutput(toolID);
   m_Controls.m_FiducialRegistrationWidget->setTrackerNavigationData(m_TrackingPointer);
-  m_Controls.m_PointerLabel->setText(m_Controls.m_TrackingDeviceSelectionWidget->GetSelectedNavigationTool()->GetToolName().c_str());
+  m_Controls.m_PointerLabel->setText(
+    m_Controls.m_TrackingDeviceSelectionWidget->GetSelectedNavigationTool()->GetToolName().c_str());
 }
 
 void QmitkIGTFiducialRegistration::ImageSelectionChanged()
@@ -101,16 +122,9 @@ void QmitkIGTFiducialRegistration::ImageSelectionChanged()
   m_Controls.m_FiducialRegistrationWidget->setImageNode(m_Controls.m_DataStorageComboBox->GetSelectedNode());
 }
 
-QmitkIGTFiducialRegistration::QmitkIGTFiducialRegistration()
-{
+QmitkIGTFiducialRegistration::QmitkIGTFiducialRegistration() {}
 
-}
-
-QmitkIGTFiducialRegistration::~QmitkIGTFiducialRegistration()
-{
-
-}
-
+QmitkIGTFiducialRegistration::~QmitkIGTFiducialRegistration() {}
 
 // Add Spine CT preparation part
 void QmitkIGTFiducialRegistration::ReferenceSelect()
@@ -123,7 +137,8 @@ void QmitkIGTFiducialRegistration::ReferenceSelect()
     m_Controls.m_TrackingDeviceSelectionWidget_sawcalib->GetSelectedNavigationTool()->GetToolName().c_str());
 }
 
-void QmitkIGTFiducialRegistration::ToolSelect(){
+void QmitkIGTFiducialRegistration::ToolSelect()
+{
   int toolID = m_Controls.m_TrackingDeviceSelectionWidget_sawcalib->GetSelectedToolID();
   m_ToolNDPointer =
     m_Controls.m_TrackingDeviceSelectionWidget_sawcalib->GetSelectedNavigationDataSource()->GetOutput(toolID);
@@ -160,8 +175,8 @@ vtkMatrix4x4 *QmitkIGTFiducialRegistration::getVtkMatrix4x4(mitk::NavigationData
 }
 
 void QmitkIGTFiducialRegistration::getReferenceMatrix4x4(vtkMatrix4x4 *Mainmatrix,
-                                                       vtkMatrix4x4 *Refmatrix,
-                                                       vtkMatrix4x4 *Returnmatrix)
+                                                         vtkMatrix4x4 *Refmatrix,
+                                                         vtkMatrix4x4 *Returnmatrix)
 {
   Refmatrix->Invert();
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -200,7 +215,6 @@ void QmitkIGTFiducialRegistration::PrepareCT()
 
       tmpNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(trans->GetMatrix());
     }
-
   }
   else
   {
@@ -212,49 +226,16 @@ void QmitkIGTFiducialRegistration::CreateNdiDataCarrier()
 {
   auto ReferenceMatrix = getVtkMatrix4x4(m_ReferenceNDPointer);
 
-  // auto tmpSource = vtkSphereSource::New();
-  // tmpSource->SetCenter(0,0,0);
-  // tmpSource->SetRadius(7);
-  // tmpSource->Update();
-  //
-  // auto targetNode = mitk::DataNode::New();
-  // auto tmpSurface = mitk::Surface::New();
-  // tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
-  //
-  // targetNode->SetData(tmpSurface);
-  // targetNode->SetName("NDIdata image calibrator");
-  // targetNode->SetColor(1.0, 1.0, 1.0);
-  // targetNode->SetVisibility(true);
-  // targetNode->SetOpacity(1.0);
-  // GetDataStorage()->Add(targetNode);
-
   GetDataStorage()
     ->GetNamedNode("NDI calibrator")
     ->GetData()
     ->GetGeometry()
     ->SetIndexToWorldTransformByVtkMatrix(ReferenceMatrix);
-	  
 }
 
 void QmitkIGTFiducialRegistration::CreateNdiDataCarrier2()
 {
   auto toolMatrix = getVtkMatrix4x4(m_ToolNDPointer);
-
-  // auto tmpSource = vtkSphereSource::New();
-  // tmpSource->SetCenter(0, 0, 0);
-  // tmpSource->SetRadius(7);
-  // tmpSource->Update();
-  //
-  // auto targetNode = mitk::DataNode::New();
-  // auto tmpSurface = mitk::Surface::New();
-  // tmpSurface->SetVtkPolyData(tmpSource->GetOutput());
-  //
-  // targetNode->SetData(tmpSurface);
-  // targetNode->SetName("NDIdata probe");
-  // targetNode->SetColor(1.0, 1.0, 1.0);
-  // targetNode->SetVisibility(true);
-  // targetNode->SetOpacity(1.0);
-  // GetDataStorage()->Add(targetNode);
 
   GetDataStorage()
     ->GetNamedNode("NDI probe")
@@ -265,8 +246,3 @@ void QmitkIGTFiducialRegistration::CreateNdiDataCarrier2()
 
 
 
-
-
-
-
- 

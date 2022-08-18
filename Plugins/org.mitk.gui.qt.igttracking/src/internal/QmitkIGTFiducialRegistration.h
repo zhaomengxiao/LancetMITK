@@ -61,6 +61,20 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void CreateNdiDataCarrier();
   void CreateNdiDataCarrier2();
 
+  // --------------------Dental slots----------------------
+  void testtDental();
+
+  void ConfirmDentalProbePointer();
+  void ConfirmDentalCalibratorDrfPointer();
+  void ConfirmDentalRobotDrfPointer();
+
+  void CollectCheckPoint1InCalibratorDrf();
+  void CollectCheckPoint2InCalibratorDrf();
+  void CollectCheckPoint3InCalibratorDrf();
+
+  void GetDentalFlangeToDrillMatrix();
+
+  // --------------------Dental slots----------------------
   protected:
 
     void InitializeRegistration();
@@ -80,6 +94,48 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void getReferenceMatrix4x4(vtkMatrix4x4 *Mainmatrix, vtkMatrix4x4 *Refmatrix, vtkMatrix4x4 *Returnmatrix);
 
   vtkMatrix4x4 *getVtkMatrix4x4(mitk::NavigationData::Pointer nd);
+
+
+  // Dental end effector calibration
+
+  double m_standardDrillLength_dental{22.5};
+  double m_currentDrillLength_dental{22.5};
+
+  double m_point_standardCheckPoint_1_dental[3]{-17.47, -21.43,-0.25};
+  double m_point_standardCheckPoint_2_dental[3]{-12.46, 27.59, -0.25};
+  double m_point_standardCheckPoint_3_dental[3]{24.78, 16.27, -0.25};
+
+  double m_point_standardRobotDrfBall_1[3]{-59.36, 75.06, 100.28};
+  double m_point_standardRobotDrfBall_2[3]{0, 62.40, 87.62};
+  double m_point_standardRobotDrfBall_3[3]{74.89, 75.06, 100.28};
+
+  double m_point_probeOnCheckPoint_1_dental[3]{0};  // in calibrator coordinate system
+  double m_point_probeOnCheckPoint_2_dental[3]{0};  // in calibrator coordinate system
+  double m_point_probeOnCheckPoint_3_dental[3]{0};  // in calibrator coordinate system
+
+  mitk::NavigationData::Pointer m_dentalProbeNDPointer;
+  mitk::NavigationData::Pointer m_dentalCalibratorDrfNDPointer;
+  mitk::NavigationData::Pointer m_dentalRobotDrfNDPointer;
+
+  // double m_matrix_ndiToProbe[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  double m_matrix_ndiToRobotDrf[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  double m_matrix_ndiToCalibratorDrf[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  double m_matrix_flangeToRobotDrf[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  double m_matrix_drillToCheckPoints[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  double m_matrix_calibratorDrfToCheckPoints[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  double m_matrix_robotDrfToCalibratorDrf[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  double m_matrix_robotDrfToDrill[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  double m_matrix_flangeToDrill[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  bool GetMatrixFlangeToRobotDrf(/*update m_matrix_flangeToRobotDrf*/);
+  bool GetMatrixDrillToCheckPoints(/*update m_matrix_drillToCheckPoints*/);
+
+  bool GetMatrixCalibratorDrfToCheckPoints(/*update m_matrix_calibratorDrfToCheckPoints*/);
+  bool GetMatrixRobotDrfToCalibratorDrf(/*update m_matrix_robotDrfToCalibratorDrf*/);
 
 };
 
