@@ -11,14 +11,10 @@ found in the LICENSE file.
 ============================================================================*/
 
 // Blueberry
-#include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
 
 //Mitk
 #include <mitkDataNode.h>
-#include <mitkNodePredicateNot.h>
-#include <mitkNodePredicateProperty.h>
-#include <mitkNodePredicateOr.h>
 #include <mitkNodePredicateDataType.h>
 #include <mitkImageGenerator.h>
 
@@ -27,16 +23,10 @@ found in the LICENSE file.
 #include <QmitkRenderWindow.h>
 
 // Qt
-#include <QMessageBox>
 #include <QSettings>
-#include <QTimer>
 
-// MicroServices
-#include <usModuleContext.h>
-#include <usGetModuleContext.h>
-#include "usServiceReference.h"
-#include <vtkQuaternion.h>
-#include <vtkSphereSource.h>
+
+
 
 //--------------------slots---------------------------
 void QmitkIGTFiducialRegistration::ConfirmDentalProbePointer()
@@ -211,48 +201,49 @@ bool QmitkIGTFiducialRegistration::GetMatrixFlangeToRobotDrf()
   // 1-->2 X 1-->3 : y axis
   // this configuration should be conformed when preparing the .rom file !!!
 
-  Eigen::Vector3d ballCenter_1{m_point_standardRobotDrfBall_1};
-  Eigen::Vector3d ballCenter_2{m_point_standardRobotDrfBall_2};
-  Eigen::Vector3d ballCenter_3{m_point_standardRobotDrfBall_3};
+  // Eigen::Vector3d ballCenter_1{m_point_standardRobotDrfBall_1};
+  // Eigen::Vector3d ballCenter_2{m_point_standardRobotDrfBall_2};
+  // Eigen::Vector3d ballCenter_3{m_point_standardRobotDrfBall_3};
+  //
+  // Eigen::Vector3d x = ballCenter_2 - ballCenter_1;
+  // x.normalize();
+  //
+  // Eigen::Vector3d y = x.cross(ballCenter_3 - ballCenter_1);
+  // y.normalize();
+  //
+  // Eigen::Vector3d z = x.cross(y);
+  // z.normalize();
+  //
+  // Eigen::Vector3d t{ballCenter_1[0], ballCenter_1[1], ballCenter_1[2]};
+  //
+  // Eigen::Matrix4d matrix;
+  // matrix.setIdentity();
+  //
+  // matrix.block<3, 1>(0, 0) = x;
+  // matrix.block<3, 1>(0, 1) = y;
+  // matrix.block<3, 1>(0, 2) = z;
+  // matrix.block<3, 1>(0, 3) = t;
+  //
+  // // MITK_INFO << "x" << endl<<x<<endl;
+  // // MITK_INFO << "y" << endl<<y<<endl;
+  // // MITK_INFO << "z" << endl << z << endl;
+  //
+  // MITK_INFO << "MatrixFlangeToRobotDrf: " << endl<<matrix;
+  //
+  // matrix.transposeInPlace();
+  //
+  // //MITK_INFO << "matrix" << endl << matrix;
+  //
+  // for (int i{0}; i < 16; i++)
+  // {
+  //   m_matrix_flangeToRobotDrf[i] = matrix(i);
+  // }
 
-  Eigen::Vector3d x = ballCenter_2 - ballCenter_1;
-  x.normalize();
+    m_matrix_flangeToRobotDrf[3] = 74.89;
+  m_matrix_flangeToRobotDrf[7] = 75.06;
+    m_matrix_flangeToRobotDrf[11] = 100.28;
 
-  Eigen::Vector3d y = x.cross(ballCenter_3 - ballCenter_1);
-  y.normalize();
 
-  Eigen::Vector3d z = x.cross(y);
-  z.normalize();
-
-  // Eigen::Vector4d X{x[0], x[1], x[2], 0};
-  // Eigen::Vector4d Y{y[0], y[1], y[2], 0};
-  // Eigen::Vector4d Z{z[0], z[1], z[2], 0};
-
-  Eigen::Vector3d t{ballCenter_1[0], ballCenter_1[1], ballCenter_1[2]};
-
-  Eigen::Matrix4d matrix;
-  matrix.setIdentity();
-  
-  matrix.block<3, 1>(0, 0) = x;
-  matrix.block<3, 1>(0, 1) = y;
-  matrix.block<3, 1>(0, 2) = z;
-  matrix.block<3, 1>(0, 3) = t;
-
-  // MITK_INFO << "x" << endl<<x<<endl;
-  // MITK_INFO << "y" << endl<<y<<endl;
-  // MITK_INFO << "z" << endl << z << endl;
-
-  MITK_INFO << "MatrixFlangeToRobotDrf: " << endl<<matrix;
-
-  matrix.transposeInPlace();
-
-  //MITK_INFO << "matrix" << endl << matrix;
-
-  for (int i{0}; i < 16; i++)
-  {
-    m_matrix_flangeToRobotDrf[i] = matrix(i);
-  }
-  
   return true;
 }
 
