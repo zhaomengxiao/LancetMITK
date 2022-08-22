@@ -125,6 +125,7 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint3InCalibratorDrf()
 
 void QmitkIGTFiducialRegistration::GetDentalFlangeToDrillMatrix()
 {
+  UpdateStandardCheckPoints();
   GetMatrixDrillToCheckPoints(); // needs to be inverted
   vtkNew<vtkMatrix4x4> matrixCheckPointsToDrill;
   matrixCheckPointsToDrill->DeepCopy(m_matrix_drillToCheckPoints);
@@ -355,6 +356,34 @@ bool QmitkIGTFiducialRegistration::GetMatrixCalibratorDrfToCheckPoints()
 
   return true;
 }
+
+
+bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
+{
+  if (m_Controls.radioButton_oldDental->isChecked())
+  {
+    m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_old[0];
+    m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_old[1];
+    m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_old[2];
+  }
+
+  if (m_Controls.radioButton_maxilla->isChecked())
+  {
+    m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_maxilla[0];
+    m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_maxilla[1];
+    m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_maxilla[2];
+  }
+
+  if (m_Controls.radioButton_mandible->isChecked())
+  {
+    m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_mandible[0];
+    m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_mandible[1];
+    m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_mandible[2];
+  }
+
+  return true;
+}
+
 
 
 

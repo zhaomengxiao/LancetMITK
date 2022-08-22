@@ -101,9 +101,21 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   double m_standardDrillLength_dental{22.5};
   double m_currentDrillLength_dental{22.5};
 
-  double m_point_standardCheckPoint_1_dental[3]{-17.47, -21.43,-0.25};
-  double m_point_standardCheckPoint_2_dental[3]{-12.46, 27.59, -0.25};
-  double m_point_standardCheckPoint_3_dental[3]{24.78, 16.27, -0.25};
+  double m_point_standardCheckPoint_1_dental[3]{-17.47, -21.43,-0.25}; // in drill tip coordinate 
+  double m_point_standardCheckPoint_2_dental[3]{-12.46, 27.59, -0.25}; // in drill tip coordinate 
+  double m_point_standardCheckPoint_3_dental[3]{24.78, 16.27, -0.25}; // in drill tip coordinate 
+
+  double m_point_standardCheckPoint_1_old[3]{-17.47, -21.43, -0.25}; // in drill tip coordinate
+  double m_point_standardCheckPoint_2_old[3]{-12.46, 27.59, -0.25};   // in drill tip coordinate
+  double m_point_standardCheckPoint_3_old[3]{24.78, 16.27, -0.25};   // in drill tip coordinate 
+
+  double m_point_standardCheckPoint_1_mandible[3]{10.0, -10.0, 1.0}; // in drill tip coordinate 
+  double m_point_standardCheckPoint_2_mandible[3]{0.0, 6.0, 1.0}; // in drill tip coordinate 
+  double m_point_standardCheckPoint_3_mandible[3]{-10.0, -2.0, 1.0}; // in drill tip coordinate 
+
+  double m_point_standardCheckPoint_1_maxilla[3]{8.0, 5.0, 1.0};    // in drill tip coordinate
+  double m_point_standardCheckPoint_2_maxilla[3]{-10.0, 3.0, 1.0};  // in drill tip coordinate
+  double m_point_standardCheckPoint_3_maxilla[3]{-8.0, -5.0, 1.0};  // in drill tip coordinate 
 
   double m_point_standardRobotDrfBall_1[3]{-59.36, 75.06, 100.28};
   double m_point_standardRobotDrfBall_2[3]{0, 62.40, 87.62};
@@ -130,6 +142,9 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   double m_matrix_robotDrfToDrill[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 
   double m_matrix_flangeToDrill[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+
+  bool UpdateStandardCheckPoints(/*update m_point_standardCheckPoint_1/2/3_dental*/);
 
   bool GetMatrixFlangeToRobotDrf(/*update m_matrix_flangeToRobotDrf*/);
   bool GetMatrixDrillToCheckPoints(/*update m_matrix_drillToCheckPoints*/);
