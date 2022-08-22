@@ -171,17 +171,41 @@ void QmitkIGTFiducialRegistration::GetDentalFlangeToDrillMatrix()
 
   eigenMatrixFlangeToDrill.transposeInPlace();
 
+
+  // Fine tune the x and y axis of the drill coordinate
+  Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
+  Eigen::Vector3d tmpY{0, 1, 0};
+  Eigen::Vector3d x = tmpY.cross(z);
+  x.normalize();
+  Eigen::Vector3d y = z.cross(x);
+  y.normalize();
+
+  eigenMatrixFlangeToDrill.block<3, 1>(0, 0) = x;
+  eigenMatrixFlangeToDrill.block<3, 1>(0, 1) = y;
+  eigenMatrixFlangeToDrill.block<3, 1>(0, 2) = z;
+
+  // Calculate the drill tip deviation
+  double drillTipError = sqrt(pow(eigenMatrixFlangeToDrill(12) + 3.02, 2) + pow(eigenMatrixFlangeToDrill(13) + 19.78, 2) +
+         pow(eigenMatrixFlangeToDrill(14) - 326.10, 2));
+
+  Eigen::Vector3d standardDrillAxis{0, 0.67, 0.74};
+
+  double cosineVlaue = z.dot(standardDrillAxis) / (z.norm() * standardDrillAxis.norm());
+  double drillAxisAngleError = acos(cosineVlaue) * 180 / 3.14159; 
+
   MITK_INFO << "m_matrix_flangeToDrill" << endl << eigenMatrixFlangeToDrill <<endl;
 
   MITK_INFO << "Drill tip in flange coordinate:" << endl;
   MITK_INFO << "x:" << eigenMatrixFlangeToDrill(12) << " (-3.02)" << endl;
   MITK_INFO << "y:" << eigenMatrixFlangeToDrill(13) << " (-19.78)" << endl;
   MITK_INFO << "z:" << eigenMatrixFlangeToDrill(14) << " (326.10)" << endl;
+  MITK_INFO << "Deviation: " << drillTipError << endl;
+  MITK_INFO << "Drill Axis Deviation: " << drillAxisAngleError << endl;
 
-  MITK_INFO << "Drill tip +z 1 mm in flange coordinate:" << endl;
-  MITK_INFO << "x:" << eigenMatrixFlangeToDrill(12) + eigenMatrixFlangeToDrill(8) << " (-3.02)" << endl;
-  MITK_INFO << "y:" << eigenMatrixFlangeToDrill(13) + eigenMatrixFlangeToDrill(9) << " (-19.11)" << endl;
-  MITK_INFO << "z:" << eigenMatrixFlangeToDrill(14) + eigenMatrixFlangeToDrill(10) << " (326.75)" << endl;
+  // MITK_INFO << "Drill tip +z 1 mm in flange coordinate:" << endl;
+  // MITK_INFO << "x:" << eigenMatrixFlangeToDrill(12) + eigenMatrixFlangeToDrill(8) << " (-3.02)" << endl;
+  // MITK_INFO << "y:" << eigenMatrixFlangeToDrill(13) + eigenMatrixFlangeToDrill(9) << " (-19.11)" << endl;
+  // MITK_INFO << "z:" << eigenMatrixFlangeToDrill(14) + eigenMatrixFlangeToDrill(10) << " (326.75)" << endl;
 
 }
 
@@ -239,9 +263,9 @@ bool QmitkIGTFiducialRegistration::GetMatrixFlangeToRobotDrf()
   //   m_matrix_flangeToRobotDrf[i] = matrix(i);
   // }
 
-    m_matrix_flangeToRobotDrf[3] = 74.89;
-  m_matrix_flangeToRobotDrf[7] = 75.06;
-    m_matrix_flangeToRobotDrf[11] = 100.28;
+  m_matrix_flangeToRobotDrf[3] = 0;
+  m_matrix_flangeToRobotDrf[7] = 0;
+  m_matrix_flangeToRobotDrf[11] = 0;
 
 
   return true;
