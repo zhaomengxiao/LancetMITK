@@ -101,6 +101,18 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   double m_standardDrillLength_dental{22.5};
   double m_currentDrillLength_dental{22.5};
 
+  double m_designDrillTip_dental[3]{-3.02, -19.78, 326.10}; // in flange coordinate
+  double m_designDrillAxis_dental[3]{0, 0.67, 0.74}; // in flange coordinate
+
+  double m_oldDrillTip_dental[3]{-3.02, -19.78, 326.10}; // in flange coordinate
+  double m_oldDrillAxis_dental[3]{0, -0.67, -0.74};        // in flange coordinate
+
+  double m_mandibleDrillTip_dental[3]{0}; // in flange coordinate
+  double m_mandibleDrillAxis_dental[3]{0};        // in flange coordinate
+
+  double m_maxillaDrillTip_dental[3]{0}; // in flange coordinate
+  double m_maxillaDrillAxis_dental[3]{0};        // in flange coordinate
+
   double m_point_standardCheckPoint_1_dental[3]{-17.47, -21.43,-0.25}; // in drill tip coordinate 
   double m_point_standardCheckPoint_2_dental[3]{-12.46, 27.59, -0.25}; // in drill tip coordinate 
   double m_point_standardCheckPoint_3_dental[3]{24.78, 16.27, -0.25}; // in drill tip coordinate 
@@ -151,6 +163,10 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
   bool GetMatrixCalibratorDrfToCheckPoints(/*update m_matrix_calibratorDrfToCheckPoints*/);
   bool GetMatrixRobotDrfToCalibratorDrf(/*update m_matrix_robotDrfToCalibratorDrf*/);
+
+  bool ManipulateXYaxes();
+
+  bool EvaluateResult();
 
 };
 

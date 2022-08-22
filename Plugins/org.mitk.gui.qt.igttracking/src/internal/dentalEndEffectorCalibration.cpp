@@ -170,43 +170,8 @@ void QmitkIGTFiducialRegistration::GetDentalFlangeToDrillMatrix()
     m_matrix_flangeToDrill[i] = eigenMatrixFlangeToDrill(i);
   }
 
-  eigenMatrixFlangeToDrill.transposeInPlace();
-
-
-  // Fine tune the x and y axis of the drill coordinate
-  Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
-  Eigen::Vector3d tmpY{0, 1, 0};
-  Eigen::Vector3d x = tmpY.cross(z);
-  x.normalize();
-  Eigen::Vector3d y = z.cross(x);
-  y.normalize();
-
-  eigenMatrixFlangeToDrill.block<3, 1>(0, 0) = x;
-  eigenMatrixFlangeToDrill.block<3, 1>(0, 1) = y;
-  eigenMatrixFlangeToDrill.block<3, 1>(0, 2) = z;
-
-  // Calculate the drill tip deviation
-  double drillTipError = sqrt(pow(eigenMatrixFlangeToDrill(12) + 3.02, 2) + pow(eigenMatrixFlangeToDrill(13) + 19.78, 2) +
-         pow(eigenMatrixFlangeToDrill(14) - 326.10, 2));
-
-  Eigen::Vector3d standardDrillAxis{0, 0.67, 0.74};
-
-  double cosineVlaue = z.dot(standardDrillAxis) / (z.norm() * standardDrillAxis.norm());
-  double drillAxisAngleError = acos(cosineVlaue) * 180 / 3.14159; 
-
-  MITK_INFO << "m_matrix_flangeToDrill" << endl << eigenMatrixFlangeToDrill <<endl;
-
-  MITK_INFO << "Drill tip in flange coordinate:" << endl;
-  MITK_INFO << "x:" << eigenMatrixFlangeToDrill(12) << " (-3.02)" << endl;
-  MITK_INFO << "y:" << eigenMatrixFlangeToDrill(13) << " (-19.78)" << endl;
-  MITK_INFO << "z:" << eigenMatrixFlangeToDrill(14) << " (326.10)" << endl;
-  MITK_INFO << "Deviation: " << drillTipError << endl;
-  MITK_INFO << "Drill Axis Deviation: " << drillAxisAngleError << endl;
-
-  // MITK_INFO << "Drill tip +z 1 mm in flange coordinate:" << endl;
-  // MITK_INFO << "x:" << eigenMatrixFlangeToDrill(12) + eigenMatrixFlangeToDrill(8) << " (-3.02)" << endl;
-  // MITK_INFO << "y:" << eigenMatrixFlangeToDrill(13) + eigenMatrixFlangeToDrill(9) << " (-19.11)" << endl;
-  // MITK_INFO << "z:" << eigenMatrixFlangeToDrill(14) + eigenMatrixFlangeToDrill(10) << " (326.75)" << endl;
+  ManipulateXYaxes();
+  EvaluateResult();
 
 }
 
@@ -365,6 +330,14 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_old[0];
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_old[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_old[2];
+
+    m_designDrillTip_dental[0] = m_oldDrillTip_dental[0];
+    m_designDrillTip_dental[1] = m_oldDrillTip_dental[1];
+    m_designDrillTip_dental[2] = m_oldDrillTip_dental[2];
+
+    m_designDrillAxis_dental[0] = m_oldDrillAxis_dental[0];
+    m_designDrillAxis_dental[1] = m_oldDrillAxis_dental[1];
+    m_designDrillAxis_dental[2] = m_oldDrillAxis_dental[2];
   }
 
   if (m_Controls.radioButton_maxilla->isChecked())
@@ -372,6 +345,14 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_maxilla[0];
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_maxilla[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_maxilla[2];
+
+    m_designDrillTip_dental[0] = m_maxillaDrillTip_dental[0];
+    m_designDrillTip_dental[1] = m_maxillaDrillTip_dental[1];
+    m_designDrillTip_dental[2] = m_maxillaDrillTip_dental[2];
+
+    m_designDrillAxis_dental[0] = m_maxillaDrillAxis_dental[0];
+    m_designDrillAxis_dental[1] = m_maxillaDrillAxis_dental[1];
+    m_designDrillAxis_dental[2] = m_maxillaDrillAxis_dental[2];
   }
 
   if (m_Controls.radioButton_mandible->isChecked())
@@ -379,11 +360,117 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_mandible[0];
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_mandible[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_mandible[2];
+
+    m_designDrillTip_dental[0] = m_mandibleDrillTip_dental[0];
+    m_designDrillTip_dental[1] = m_mandibleDrillTip_dental[1];
+    m_designDrillTip_dental[2] = m_mandibleDrillTip_dental[2];
+
+    m_designDrillAxis_dental[0] = m_mandibleDrillAxis_dental[0];
+    m_designDrillAxis_dental[1] = m_mandibleDrillAxis_dental[1];
+    m_designDrillAxis_dental[2] = m_mandibleDrillAxis_dental[2];
   }
 
   return true;
 }
 
+
+
+bool QmitkIGTFiducialRegistration::ManipulateXYaxes()
+{
+  Eigen::Matrix4d eigenMatrixFlangeToDrill;
+
+  for (int i{0}; i < 16; i++)
+  {
+    eigenMatrixFlangeToDrill(i) = m_matrix_flangeToDrill[i];
+  }
+
+  eigenMatrixFlangeToDrill.transposeInPlace();
+
+  // Fine tune the x and y axis of the drill coordinate
+  if (m_Controls.radioButton_mandible->isChecked() || m_Controls.radioButton_oldDental->isChecked())
+  {
+    Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
+    Eigen::Vector3d tmpY{0, 1, 0};
+    Eigen::Vector3d x = tmpY.cross(z);
+    x.normalize();
+    Eigen::Vector3d y = z.cross(x);
+    y.normalize();
+
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 0) = -x;
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 1) = y;
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 2) = -z;
+  }
+
+  if (m_Controls.radioButton_maxilla->isChecked())
+  {
+    Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
+    Eigen::Vector3d tmpY{0, 1, 0};
+    Eigen::Vector3d x = tmpY.cross(z);
+    x.normalize();
+    Eigen::Vector3d y = z.cross(x);
+    y.normalize();
+
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 0) = - x;
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 1) = y;
+    eigenMatrixFlangeToDrill.block<3, 1>(0, 2) = - z;
+  }
+
+
+  // Store the matrix
+  eigenMatrixFlangeToDrill.transposeInPlace();
+
+  for (int i{0}; i < 16; i++)
+  {
+    m_matrix_flangeToDrill[i] = eigenMatrixFlangeToDrill(i);
+  }
+
+
+  return true;
+}
+
+
+bool QmitkIGTFiducialRegistration::EvaluateResult()
+{
+  Eigen::Matrix4d eigenMatrixFlangeToDrill;
+
+  for (int i{0}; i < 16; i++)
+  {
+    eigenMatrixFlangeToDrill(i) = m_matrix_flangeToDrill[i];
+  }
+
+  eigenMatrixFlangeToDrill.transposeInPlace();
+
+
+  // Calculate the deviation
+  Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
+
+  double calculatedDrillTip[3]{
+    eigenMatrixFlangeToDrill(12), eigenMatrixFlangeToDrill(13), eigenMatrixFlangeToDrill(14)};
+
+  Eigen::Vector3d designDirection{m_designDrillAxis_dental};
+  Eigen::Vector3d designDrillTip{m_designDrillTip_dental};
+
+  double drillTipError =
+    sqrt(pow(calculatedDrillTip[0] - designDrillTip(0), 2) + pow(calculatedDrillTip[1] - designDrillTip(1), 2) +
+         pow(calculatedDrillTip[2] - designDrillTip(2), 2));
+
+  //Eigen::Vector3d standardDrillAxis{0, 0.67, 0.74};
+
+  double cosineVlaue = z.dot(designDirection) / (z.norm() * designDirection.norm());
+  double drillAxisAngleError = acos(cosineVlaue) * 180 / 3.14159;
+
+  MITK_INFO << "m_matrix_flangeToDrill" << endl << eigenMatrixFlangeToDrill << endl;
+
+  MITK_INFO << "Drill tip in flange coordinate:" << endl;
+  MITK_INFO << "x:" << calculatedDrillTip[0] << " /" << m_designDrillTip_dental[0] << endl;
+  MITK_INFO << "y:" << calculatedDrillTip[1] << " /" << m_designDrillTip_dental[1] << endl;
+  MITK_INFO << "z:" << calculatedDrillTip[2] << " /" << m_designDrillTip_dental[2] << endl;
+  MITK_INFO << "Drill tip distance deviation: " << drillTipError << endl;
+  MITK_INFO << "Drill axis angle deviation: " << drillAxisAngleError <<" degrees"<< endl;
+
+
+  return true;
+}
 
 
 
