@@ -346,6 +346,8 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_maxilla[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_maxilla[2];
 
+
+    m_point_standardCheckPoint_3_dental[0] = m_point_standardCheckPoint_3_maxilla[0];
     m_designDrillTip_dental[0] = m_maxillaDrillTip_dental[0];
     m_designDrillTip_dental[1] = m_maxillaDrillTip_dental[1];
     m_designDrillTip_dental[2] = m_maxillaDrillTip_dental[2];
