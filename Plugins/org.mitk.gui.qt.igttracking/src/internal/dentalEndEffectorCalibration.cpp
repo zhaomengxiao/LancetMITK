@@ -65,16 +65,7 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint1InCalibratorDrf()
 
   vtkNew<vtkMatrix4x4> matrixNdiToCalibrator;
   matrixNdiToCalibrator->DeepCopy(getVtkMatrix4x4(m_dentalCalibratorDrfNDPointer));
-
-  Eigen::Vector3d calibratorLocation{matrixNdiToCalibrator->GetElement(0, 3),
-                                     matrixNdiToCalibrator->GetElement(1, 3),
-                                     matrixNdiToCalibrator->GetElement(2, 3)};
-
-  Eigen::Vector3d calibratorNormalUnderNdi{matrixNdiToCalibrator->GetElement(0, 2),
-                                           matrixNdiToCalibrator->GetElement(1, 2),
-                                           matrixNdiToCalibrator->GetElement(2, 2)};
-
-
+   
   vtkNew<vtkMatrix4x4> matrixCalibratorToProbe;
   getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToCalibrator, matrixCalibratorToProbe);
 
@@ -87,40 +78,7 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint1InCalibratorDrf()
     QString::number(m_point_probeOnCheckPoint_1_dental[1]) + "|" +
     QString::number(m_point_probeOnCheckPoint_1_dental[2]));
 
-
-  // Calculate the calibrator marker angles and the distance to the NDI coordinate origin
-  // The rom file should have the z axis the same as the marker angle (calibrator normal)
-
-  double leftSensorLocation[3]{0,250,0};
-  double rightSensorLocation[3]{0, -250, 0};
-
-
-  Eigen::Vector3d calibratorToLeftSensor{leftSensorLocation[0] - calibratorLocation[0],
-                                         leftSensorLocation[1] - calibratorLocation[1],
-                                         leftSensorLocation[2] - calibratorLocation[2]};
-
-  Eigen::Vector3d calibratorToRightSensor{rightSensorLocation[0] - calibratorLocation[0],
-                                          rightSensorLocation[1] - calibratorLocation[1],
-                                          rightSensorLocation[2] - calibratorLocation[2]};
-  // Calculate the angles
   
-  // with left sensor
-  double cosineValueLeft = calibratorNormalUnderNdi.dot(calibratorToLeftSensor) /
-                           (calibratorNormalUnderNdi.norm() * calibratorToLeftSensor.norm());
-  double angleLeftSensor = acos(cosineValueLeft) * 180 / 3.14159;
-
-  // with right sensor
-  double cosineValueRight = calibratorNormalUnderNdi.dot(calibratorToRightSensor) /
-                            (calibratorNormalUnderNdi.norm() * calibratorToRightSensor.norm());
-  double angleRightSensor = acos(cosineValueRight) * 180 / 3.14159;
-
-  double calibratorToNdiOrigin = calibratorLocation.norm();
-
-  m_Controls.textBrowser_dental->append("Angle with the left senor: " + QString::number(angleLeftSensor) + " degrees");
-  m_Controls.textBrowser_dental->append("Angle with the right senor: " + QString::number(angleRightSensor) + " degrees");
-  m_Controls.textBrowser_dental->append("Distance to the NDI origin: " + QString::number(calibratorToNdiOrigin) +
-                                        " mm");
-
 
 }
 
