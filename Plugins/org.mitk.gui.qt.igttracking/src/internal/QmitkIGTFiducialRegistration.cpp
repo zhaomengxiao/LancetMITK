@@ -62,7 +62,7 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
   m_dentalProbeNDPointer = mitk::NavigationData::New();
   m_dentalCalibratorDrfNDPointer = mitk::NavigationData::New();
   m_dentalRobotDrfNDPointer = mitk::NavigationData::New();
-  connect(m_Controls.pushButton_testt, SIGNAL(clicked()), this, SLOT(testtDental()));
+  //connect(m_Controls.pushButton_testt, SIGNAL(clicked()), this, SLOT(testtDental()));
   connect(m_Controls.pushButton_confirmProbe_dental, SIGNAL(clicked()), this, SLOT(ConfirmDentalProbePointer()));
   connect(m_Controls.pushButton_confirmRobotDrf_dental, SIGNAL(clicked()), this, SLOT(ConfirmDentalRobotDrfPointer()));
   connect(m_Controls.pushButton_confirmCalibratorDrf_dental,

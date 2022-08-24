@@ -61,7 +61,7 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void CreateNdiDataCarrier();
   void CreateNdiDataCarrier2();
 
-  // --------------------Dental slots----------------------
+  // --------------------Dental slots start----------------------
   void testtDental();
 
   void ConfirmDentalProbePointer();
@@ -74,7 +74,9 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
   void GetDentalFlangeToDrillMatrix();
 
-  // --------------------Dental slots----------------------
+  // --------------------Dental slots End----------------------
+
+
   protected:
 
     void InitializeRegistration();
@@ -98,6 +100,10 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
   // Dental end effector calibration
 
+  // double leftSensorAngle{0};
+  // double rightSensorAngle{0};
+  // double distanceToNdiOrigin{0};
+
   double m_standardDrillLength_dental{22.5};
   double m_currentDrillLength_dental{22.5};
 
@@ -107,11 +113,11 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   double m_oldDrillTip_dental[3]{-3.02, -19.78, 326.10}; // in flange coordinate
   double m_oldDrillAxis_dental[3]{0, -0.67, -0.74};        // in flange coordinate
 
-  double m_mandibleDrillTip_dental[3]{0}; // in flange coordinate
-  double m_mandibleDrillAxis_dental[3]{0};        // in flange coordinate
+  double m_mandibleDrillTip_dental[3]{18.0, -123.67, 222.69}; // in flange coordinate
+  double m_mandibleDrillAxis_dental[3]{0.0, 0.24, -0.97};        // in flange coordinate
 
-  double m_maxillaDrillTip_dental[3]{0}; // in flange coordinate
-  double m_maxillaDrillAxis_dental[3]{0};        // in flange coordinate
+  double m_maxillaDrillTip_dental[3]{18.0, -62.53, 289.25};  // in flange coordinate
+  double m_maxillaDrillAxis_dental[3]{0.0, 0.93, 0.38};        // in flange coordinate
 
   double m_point_standardCheckPoint_1_dental[3]{-17.47, -21.43,-0.25}; // in drill tip coordinate 
   double m_point_standardCheckPoint_2_dental[3]{-12.46, 27.59, -0.25}; // in drill tip coordinate 

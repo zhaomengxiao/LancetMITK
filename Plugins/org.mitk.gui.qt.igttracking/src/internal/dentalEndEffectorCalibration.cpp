@@ -66,6 +66,15 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint1InCalibratorDrf()
   vtkNew<vtkMatrix4x4> matrixNdiToCalibrator;
   matrixNdiToCalibrator->DeepCopy(getVtkMatrix4x4(m_dentalCalibratorDrfNDPointer));
 
+  Eigen::Vector3d calibratorLocation{matrixNdiToCalibrator->GetElement(0, 3),
+                                     matrixNdiToCalibrator->GetElement(1, 3),
+                                     matrixNdiToCalibrator->GetElement(2, 3)};
+
+  Eigen::Vector3d calibratorNormalUnderNdi{matrixNdiToCalibrator->GetElement(0, 2),
+                                           matrixNdiToCalibrator->GetElement(1, 2),
+                                           matrixNdiToCalibrator->GetElement(2, 2)};
+
+
   vtkNew<vtkMatrix4x4> matrixCalibratorToProbe;
   getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToCalibrator, matrixCalibratorToProbe);
 
@@ -77,6 +86,41 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint1InCalibratorDrf()
                                         QString::number(m_point_probeOnCheckPoint_1_dental[0]) + "|" +
     QString::number(m_point_probeOnCheckPoint_1_dental[1]) + "|" +
     QString::number(m_point_probeOnCheckPoint_1_dental[2]));
+
+
+  // Calculate the calibrator marker angles and the distance to the NDI coordinate origin
+  // The rom file should have the z axis the same as the marker angle (calibrator normal)
+
+  double leftSensorLocation[3]{0,250,0};
+  double rightSensorLocation[3]{0, -250, 0};
+
+
+  Eigen::Vector3d calibratorToLeftSensor{leftSensorLocation[0] - calibratorLocation[0],
+                                         leftSensorLocation[1] - calibratorLocation[1],
+                                         leftSensorLocation[2] - calibratorLocation[2]};
+
+  Eigen::Vector3d calibratorToRightSensor{rightSensorLocation[0] - calibratorLocation[0],
+                                          rightSensorLocation[1] - calibratorLocation[1],
+                                          rightSensorLocation[2] - calibratorLocation[2]};
+  // Calculate the angles
+  
+  // with left sensor
+  double cosineValueLeft = calibratorNormalUnderNdi.dot(calibratorToLeftSensor) /
+                           (calibratorNormalUnderNdi.norm() * calibratorToLeftSensor.norm());
+  double angleLeftSensor = acos(cosineValueLeft) * 180 / 3.14159;
+
+  // with right sensor
+  double cosineValueRight = calibratorNormalUnderNdi.dot(calibratorToRightSensor) /
+                            (calibratorNormalUnderNdi.norm() * calibratorToRightSensor.norm());
+  double angleRightSensor = acos(cosineValueRight) * 180 / 3.14159;
+
+  double calibratorToNdiOrigin = calibratorLocation.norm();
+
+  m_Controls.textBrowser_dental->append("Angle with the left senor: " + QString::number(angleLeftSensor) + " degrees");
+  m_Controls.textBrowser_dental->append("Angle with the right senor: " + QString::number(angleRightSensor) + " degrees");
+  m_Controls.textBrowser_dental->append("Distance to the NDI origin: " + QString::number(calibratorToNdiOrigin) +
+                                        " mm");
+
 
 }
 
@@ -331,6 +375,14 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_old[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_old[2];
 
+    m_point_standardCheckPoint_2_dental[0] = m_point_standardCheckPoint_2_old[0];
+    m_point_standardCheckPoint_2_dental[1] = m_point_standardCheckPoint_2_old[1];
+    m_point_standardCheckPoint_2_dental[2] = m_point_standardCheckPoint_2_old[2];
+
+    m_point_standardCheckPoint_3_dental[0] = m_point_standardCheckPoint_3_old[0];
+    m_point_standardCheckPoint_3_dental[1] = m_point_standardCheckPoint_3_old[1];
+    m_point_standardCheckPoint_3_dental[2] = m_point_standardCheckPoint_3_old[2];
+
     m_designDrillTip_dental[0] = m_oldDrillTip_dental[0];
     m_designDrillTip_dental[1] = m_oldDrillTip_dental[1];
     m_designDrillTip_dental[2] = m_oldDrillTip_dental[2];
@@ -346,8 +398,14 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_maxilla[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_maxilla[2];
 
+    m_point_standardCheckPoint_2_dental[0] = m_point_standardCheckPoint_2_maxilla[0];
+    m_point_standardCheckPoint_2_dental[1] = m_point_standardCheckPoint_2_maxilla[1];
+    m_point_standardCheckPoint_2_dental[2] = m_point_standardCheckPoint_2_maxilla[2];
 
     m_point_standardCheckPoint_3_dental[0] = m_point_standardCheckPoint_3_maxilla[0];
+    m_point_standardCheckPoint_3_dental[1] = m_point_standardCheckPoint_3_maxilla[1];
+    m_point_standardCheckPoint_3_dental[2] = m_point_standardCheckPoint_3_maxilla[2];
+
     m_designDrillTip_dental[0] = m_maxillaDrillTip_dental[0];
     m_designDrillTip_dental[1] = m_maxillaDrillTip_dental[1];
     m_designDrillTip_dental[2] = m_maxillaDrillTip_dental[2];
@@ -362,6 +420,14 @@ bool QmitkIGTFiducialRegistration::UpdateStandardCheckPoints()
     m_point_standardCheckPoint_1_dental[0] = m_point_standardCheckPoint_1_mandible[0];
     m_point_standardCheckPoint_1_dental[1] = m_point_standardCheckPoint_1_mandible[1];
     m_point_standardCheckPoint_1_dental[2] = m_point_standardCheckPoint_1_mandible[2];
+
+    m_point_standardCheckPoint_2_dental[0] = m_point_standardCheckPoint_2_mandible[0];
+    m_point_standardCheckPoint_2_dental[1] = m_point_standardCheckPoint_2_mandible[1];
+    m_point_standardCheckPoint_2_dental[2] = m_point_standardCheckPoint_2_mandible[2];
+
+    m_point_standardCheckPoint_3_dental[0] = m_point_standardCheckPoint_3_mandible[0];
+    m_point_standardCheckPoint_3_dental[1] = m_point_standardCheckPoint_3_mandible[1];
+    m_point_standardCheckPoint_3_dental[2] = m_point_standardCheckPoint_3_mandible[2];
 
     m_designDrillTip_dental[0] = m_mandibleDrillTip_dental[0];
     m_designDrillTip_dental[1] = m_mandibleDrillTip_dental[1];
@@ -388,6 +454,8 @@ bool QmitkIGTFiducialRegistration::ManipulateXYaxes()
 
   eigenMatrixFlangeToDrill.transposeInPlace();
 
+  //MITK_INFO << "original m_matrix_flangeToDrill" << endl << eigenMatrixFlangeToDrill << endl;
+
   // Fine tune the x and y axis of the drill coordinate
   if (m_Controls.radioButton_mandible->isChecked() || m_Controls.radioButton_oldDental->isChecked())
   {
@@ -401,6 +469,8 @@ bool QmitkIGTFiducialRegistration::ManipulateXYaxes()
     eigenMatrixFlangeToDrill.block<3, 1>(0, 0) = -x;
     eigenMatrixFlangeToDrill.block<3, 1>(0, 1) = y;
     eigenMatrixFlangeToDrill.block<3, 1>(0, 2) = -z;
+
+    //m_Controls.textBrowser_dental->append("z axis has been inverted");
   }
 
   if (m_Controls.radioButton_maxilla->isChecked())
@@ -470,6 +540,18 @@ bool QmitkIGTFiducialRegistration::EvaluateResult()
   MITK_INFO << "Drill tip distance deviation: " << drillTipError << endl;
   MITK_INFO << "Drill axis angle deviation: " << drillAxisAngleError <<" degrees"<< endl;
 
+
+  m_Controls.textBrowser_dental->append("Distance deviation: " + QString::number(drillTipError) + " mm");
+  m_Controls.textBrowser_dental->append("Angle deviation: " + QString::number(drillAxisAngleError) + " degrees");
+
+  m_Controls.textBrowser_dental->append("X: " + QString::number(calculatedDrillTip[0]) + " / " +
+                                        QString::number(m_designDrillTip_dental[0]));
+  m_Controls.textBrowser_dental->append("Y: " + QString::number(calculatedDrillTip[1]) + " / " +
+                                        QString::number(m_designDrillTip_dental[1]));
+  m_Controls.textBrowser_dental->append("Z: " + QString::number(calculatedDrillTip[2]) + " / " +
+                                        QString::number(m_designDrillTip_dental[2]));
+
+  m_Controls.textBrowser_dental->append("----------------------------");
 
   return true;
 }
