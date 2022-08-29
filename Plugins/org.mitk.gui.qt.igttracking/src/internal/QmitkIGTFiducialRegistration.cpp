@@ -77,7 +77,30 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
     m_Controls.pushButton_checkPoint_3_dental, SIGNAL(clicked()), this, SLOT(CollectCheckPoint3InCalibratorDrf()));
   
   connect(m_Controls.pushButton_getFlangeToDrill_dental, SIGNAL(clicked()), this, SLOT(GetDentalFlangeToDrillMatrix()));
-  
+
+  connect(m_Controls.pushButton_confirmProbe_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(ConfirmDentalSteelballProbePointer()));
+  connect(m_Controls.pushButton_confirmSteelballDrf_dentalsteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(ConfirmDentalSteelballDrfPointer()));
+
+  connect(m_Controls.pushButton_checkPoint_1_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint1InSteelballDrf()));
+
+  connect(m_Controls.pushButton_checkPoint_2_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint2InSteelballDrf()));
+
+  connect(m_Controls.pushButton_checkPoint_3_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint3InSteelballDrf()));
 
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();

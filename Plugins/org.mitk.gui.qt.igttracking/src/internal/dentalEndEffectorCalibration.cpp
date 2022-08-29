@@ -221,12 +221,7 @@ void QmitkIGTFiducialRegistration::GetDentalFlangeToDrillMatrix()
 
 
 //--------------------fucntions-----------------------
-void QmitkIGTFiducialRegistration::testtDental()
-{
-  GetMatrixFlangeToRobotDrf();
-  GetMatrixDrillToCheckPoints();
-  GetMatrixCalibratorDrfToCheckPoints();
-}
+
 
 bool QmitkIGTFiducialRegistration::GetMatrixFlangeToRobotDrf()
 {
