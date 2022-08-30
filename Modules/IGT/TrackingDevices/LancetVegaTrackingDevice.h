@@ -71,8 +71,6 @@ namespace mitk
 
     TrackingTool *AddTool(const char *toolName, const char *fileName, TrackingPriority p = NDIPassiveTool::Dynamic);
 
-    TrackingTool *AddRefTool(unsigned int toolNumber, unsigned int refNumber);
-
     bool RemoveTool(TrackingTool *pTool);
     void ClearTool();
 

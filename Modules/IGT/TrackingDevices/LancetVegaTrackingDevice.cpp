@@ -300,14 +300,6 @@ namespace mitk
     return t.GetPointer();
   }
 
-  TrackingTool *LancetVegaTrackingDevice::AddRefTool(unsigned int toolNumber, unsigned int refNumber)
-  {
-    mitk::NDIPassiveTool::New();
-    mitk::NDIPassiveTool::Pointer pTool = mitk::NDIPassiveTool::New();
-    pTool->SetToolName(std::to_string(toolNumber) + '\n' + std::to_string(refNumber));
-    this->m_6DTools.push_back(pTool);
-    return pTool;
-  }
 
   bool LancetVegaTrackingDevice::RemoveTool(mitk::TrackingTool *pTool)
 
