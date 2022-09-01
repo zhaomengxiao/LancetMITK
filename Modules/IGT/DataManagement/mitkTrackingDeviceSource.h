@@ -48,6 +48,11 @@ namespace mitk {
     virtual void SetTrackingDevice(mitk::TrackingDevice* td);
 
     /**
+     * \brief sets the tracking device that will be used as a source for tracking data
+     */
+    virtual mitk::TrackingDevice::Pointer GetTrackingDevice();
+
+    /**
     * \brief returns the tracking device that is used by this filter
     */
     itkGetConstObjectMacro(TrackingDevice, mitk::TrackingDevice);
