@@ -70,7 +70,6 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint1InSteelballDrf()
     "CheckPoint 1 collected:" + QString::number(m_checkpoint1_inSteelballDrf[0]) + "|" +
     QString::number(m_checkpoint1_inSteelballDrf[1]) + "|" + QString::number(m_checkpoint1_inSteelballDrf[2]));
 }
-
 void QmitkIGTFiducialRegistration::CollectCheckPoint2InSteelballDrf()
 {
   vtkNew<vtkMatrix4x4> matrixNdiToProbe;
@@ -112,8 +111,181 @@ void QmitkIGTFiducialRegistration::CollectCheckPoint3InSteelballDrf()
   GetSteelballCentersInDrfCoordinate();
 }
 
+void QmitkIGTFiducialRegistration::CollectSteelballCenter1InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
 
-// ↑↑↑↑↑  Slots  ↑↑↑↑↑ 
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter1_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter1_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter1_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 1 collected:" + QString::number(m_steelballCenter1_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter1_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter1_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter2InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter2_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter2_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter2_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 2 collected:" + QString::number(m_steelballCenter2_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter2_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter2_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter3InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter3_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter3_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter3_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 3 collected:" + QString::number(m_steelballCenter3_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter3_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter3_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter4InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter4_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter4_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter4_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 4 collected:" + QString::number(m_steelballCenter4_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter4_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter4_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter5InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter5_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter5_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter5_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 5 collected:" + QString::number(m_steelballCenter5_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter5_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter5_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter6InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter6_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter6_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter6_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 6 collected:" + QString::number(m_steelballCenter6_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter6_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter6_inSteelballDrf[2]));
+}
+void QmitkIGTFiducialRegistration::CollectSteelballCenter7InSteelballDrf()
+{
+  vtkNew<vtkMatrix4x4> matrixNdiToProbe;
+  matrixNdiToProbe->DeepCopy(getVtkMatrix4x4(m_dentalSteelballCalibrationProbeNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixNdiToSteelballDrf;
+  matrixNdiToSteelballDrf->DeepCopy(getVtkMatrix4x4(m_dentalSteelballDrfNDPointer));
+
+  vtkNew<vtkMatrix4x4> matrixSteelballDrfToProbe;
+  getReferenceMatrix4x4(matrixNdiToProbe, matrixNdiToSteelballDrf, matrixSteelballDrfToProbe);
+
+  m_steelballCenter7_inSteelballDrf[0] = matrixSteelballDrfToProbe->GetElement(0, 3);
+  m_steelballCenter7_inSteelballDrf[1] = matrixSteelballDrfToProbe->GetElement(1, 3);
+  m_steelballCenter7_inSteelballDrf[2] = matrixSteelballDrfToProbe->GetElement(2, 3);
+
+  m_Controls.textBrowser_dentalSteelball->append(
+    "Steelball 7 collected:" + QString::number(m_steelballCenter7_inSteelballDrf[0]) + "|" +
+    QString::number(m_steelballCenter7_inSteelballDrf[1]) + "|" +
+    QString::number(m_steelballCenter7_inSteelballDrf[2]));
+}
+
+void QmitkIGTFiducialRegistration::CompareSteelballs()
+{
+  double tmpSteelballs[21]{
+    m_steelballCenter1_inSteelballDrf[0], m_steelballCenter1_inSteelballDrf[1], m_steelballCenter1_inSteelballDrf[2],
+    m_steelballCenter2_inSteelballDrf[0], m_steelballCenter2_inSteelballDrf[1], m_steelballCenter2_inSteelballDrf[2],
+    m_steelballCenter3_inSteelballDrf[0], m_steelballCenter3_inSteelballDrf[1], m_steelballCenter3_inSteelballDrf[2],
+    m_steelballCenter4_inSteelballDrf[0], m_steelballCenter4_inSteelballDrf[1], m_steelballCenter4_inSteelballDrf[2],
+    m_steelballCenter5_inSteelballDrf[0], m_steelballCenter5_inSteelballDrf[1], m_steelballCenter5_inSteelballDrf[2],
+    m_steelballCenter6_inSteelballDrf[0], m_steelballCenter6_inSteelballDrf[1], m_steelballCenter6_inSteelballDrf[2],
+    m_steelballCenter7_inSteelballDrf[0], m_steelballCenter7_inSteelballDrf[1], m_steelballCenter7_inSteelballDrf[2],
+  };
+
+  for (int i{0}; i < 7; i++)
+  {
+    m_Controls.textBrowser_dentalSteelball->append("Steelball " + QString::number((i + 1)) + ":");
+    m_Controls.textBrowser_dentalSteelball->append(
+      "From checkPoints: " + QString::number(m_points_steelballCentersInDrfCoordinate[3 * i]) + " |" +
+      QString::number(m_points_steelballCentersInDrfCoordinate[3 * i + 1]) + " |" +
+      QString::number(m_points_steelballCentersInDrfCoordinate[3 * i + 2]) );
+
+    m_Controls.textBrowser_dentalSteelball->append("From direct probing: " + QString::number(tmpSteelballs[3 * i]) +
+                                                   " |" + QString::number(tmpSteelballs[3 * i + 1]) + " |" +
+                                                   QString::number(tmpSteelballs[3 * i + 2]));
+
+    double deviation{0};
+    deviation = sqrt(pow(tmpSteelballs[3 * i] - m_points_steelballCentersInDrfCoordinate[3 * i], 2) +
+                     pow(tmpSteelballs[3 * i + 1] - m_points_steelballCentersInDrfCoordinate[3 * i + 1], 2) +
+                     pow(tmpSteelballs[3 * i + 2] - m_points_steelballCentersInDrfCoordinate[3 * i + 2], 2));
+    m_Controls.textBrowser_dentalSteelball->append("Deviation: " + QString::number(deviation));
+  }
+
+}
+
+  // ↑↑↑↑↑  Slots  ↑↑↑↑↑ 
 
 
 
@@ -234,14 +406,15 @@ bool QmitkIGTFiducialRegistration::GetSteelballCentersInDrfCoordinate()
 
     Eigen::Vector4d steelballInDrf = matrixSteelballDrfToCheckPoints * matrixCheckPointsToGivenFrame * currentSteelball;
 
-    m_points_designCheckpointLocations[3 * i] = steelballInDrf(0);
-    m_points_designCheckpointLocations[3 * i + 1] = steelballInDrf(1);
-    m_points_designCheckpointLocations[3 * i + 2] = steelballInDrf(2);
+    m_points_steelballCentersInDrfCoordinate[3 * i] = steelballInDrf(0);
+    m_points_steelballCentersInDrfCoordinate[3 * i + 1] = steelballInDrf(1);
+    m_points_steelballCentersInDrfCoordinate[3 * i + 2] = steelballInDrf(2);
 
     m_Controls.textBrowser_dentalSteelball->append(
-      "steelball " + QString::number((i + 1)) + ": " + QString::number(m_points_designCheckpointLocations[3 * i]) + " / " +
-                                                   QString::number(m_points_designCheckpointLocations[3 * i + 1]) +
-                                                   " / " + QString::number(m_points_designCheckpointLocations[3 * i + 2]));
+      "steelball " + QString::number((i + 1)) + ": " +
+      QString::number(m_points_steelballCentersInDrfCoordinate[3 * i]) + " / " +
+      QString::number(m_points_steelballCentersInDrfCoordinate[3 * i + 1]) + " / " +
+      QString::number(m_points_steelballCentersInDrfCoordinate[3 * i + 2]));
 
   }
 

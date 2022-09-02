@@ -84,6 +84,15 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void CollectCheckPoint2InSteelballDrf();
   void CollectCheckPoint3InSteelballDrf();
 
+  void CollectSteelballCenter1InSteelballDrf();
+  void CollectSteelballCenter2InSteelballDrf();
+  void CollectSteelballCenter3InSteelballDrf();
+  void CollectSteelballCenter4InSteelballDrf();
+  void CollectSteelballCenter5InSteelballDrf();
+  void CollectSteelballCenter6InSteelballDrf();
+  void CollectSteelballCenter7InSteelballDrf();
+
+  void CompareSteelballs();
   // --------------------end of Dental steelball calibration slots ----------------------
 
 
@@ -193,27 +202,32 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
   double m_points_designSteelballCenters[21]
   {
-    139.50, -23.61, -10.68,
-    141.0, -25.85, -21.63,
-    126.0, -22.49, -26.43,
-    128.50, -22.0, -22.47,
-    125.50, -25.42, -3.92,
-    125.50, -31.45, 1.20,
-    141.50, -30.06, -2.06
+    3.73, -14.54, -3.75,
+   12.50, -14.0, -8.75,
+    21.27, -14.54, -3.75,
+    26.50, -8.74, -2.75,
+    25.80, 3.01, -7.25,
+    3.09, 3.51, -4.25,
+    -1.2, -10.28, -2.75
   }; // the design locations of the steelballs in given coordinate system Fr
 
   double m_points_designCheckpointLocations[9]
   {
-    141.50, -30.06, -2.06,
-    141.0, -25.85, -21.63,
-    125.50, -25.42, -3.92
+    0.0, 0.0, 0.0,
+    12.5, -11, -2.0,
+    25.0, 0.0, -4.0
   }; // the design locations of the checkpoints in given coordinate system Fr
 
 
-  double m_points_steelballCentersInDrfCoordinate[21]{
-    29.97436,  -76.53379, -51.15766, 25.42992,  -80.65884, -51.80030, 8.11930,   -86.60384,
-    -47.72123, 2.53530,   -83.51462, -50.29480, 4.02108,   -68.11822, -54.55366, 13.91066,
-    -68.38903, -56.32448, 21.41421,  -64.86712, -55.98294}; // output for subsequent dental registration
+  double m_points_steelballCentersInDrfCoordinate[21]{0}; // output for subsequent dental registration
+
+  double m_steelballCenter1_inSteelballDrf[3]{0};
+  double m_steelballCenter2_inSteelballDrf[3]{0};
+  double m_steelballCenter3_inSteelballDrf[3]{0};
+  double m_steelballCenter4_inSteelballDrf[3]{0};
+  double m_steelballCenter5_inSteelballDrf[3]{0};
+  double m_steelballCenter6_inSteelballDrf[3]{0};
+  double m_steelballCenter7_inSteelballDrf[3]{0};
 
   double m_checkpoint1_inSteelballDrf[3]{0};
   double m_checkpoint2_inSteelballDrf[3]{0};

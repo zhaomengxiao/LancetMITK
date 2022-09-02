@@ -102,6 +102,41 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
           this,
           SLOT(CollectCheckPoint3InSteelballDrf()));
 
+  
+  connect(m_Controls.pushButton_collectBall1_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter1InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall2_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter2InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall3_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter3InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall4_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter4InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall5_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter5InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall6_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter6InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall7_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter7InSteelballDrf()));
+
+  connect(m_Controls.pushButton_compare_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CompareSteelballs()));
+
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();
 

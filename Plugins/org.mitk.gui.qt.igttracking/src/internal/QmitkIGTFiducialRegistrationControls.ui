@@ -560,17 +560,14 @@
       <attribute name="title">
        <string>Steelball calibration</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_15">
+      <layout class="QGridLayout" name="gridLayout_16">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
           <string>Robotic arm end effector calibration</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_14">
-          <item row="0" column="0">
-           <widget class="QmitkNavigationDataSourceSelectionWidget" name="navipointerSelectionWidget_dentalSteelball" native="true"/>
-          </item>
-          <item row="1" column="0">
+         <layout class="QGridLayout" name="gridLayout_15">
+          <item row="1" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_28">
             <item>
              <widget class="QLabel" name="label_14">
@@ -612,7 +609,77 @@
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
+          <item row="0" column="0" colspan="2">
+           <widget class="QmitkNavigationDataSourceSelectionWidget" name="navipointerSelectionWidget_dentalSteelball" native="true"/>
+          </item>
+          <item row="3" column="0" rowspan="2" colspan="2">
+           <widget class="Line" name="line_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <layout class="QGridLayout" name="gridLayout_14">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="pushButton_collectBall1_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="pushButton_collectBall2_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 2</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="pushButton_collectBall3_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 3</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QPushButton" name="pushButton_collectBall4_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 4</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="pushButton_collectBall5_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 5</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="pushButton_collectBall6_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 6</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QPushButton" name="pushButton_collectBall7_dentalSteelball">
+              <property name="text">
+               <string>Collect steelball 7</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QPushButton" name="pushButton_compare_dentalSteelball">
+              <property name="text">
+               <string>Compare</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_22">
             <item>
              <widget class="QLabel" name="label_12">
@@ -654,17 +721,23 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
-           <widget class="Line" name="line_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
+          <item row="4" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_24">
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_25">
+              <item>
+               <spacer name="horizontalSpacer_15">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item>
                <widget class="QPushButton" name="pushButton_checkPoint_1_dentalSteelball">
                 <property name="text">
@@ -685,6 +758,19 @@
                  <string>Collect checkpoint 3</string>
                 </property>
                </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </item>
