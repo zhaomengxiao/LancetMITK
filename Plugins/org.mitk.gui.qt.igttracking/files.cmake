@@ -9,6 +9,7 @@ set(INTERNAL_CPP_FILES
   QmitkNavigationDataPlayerView.cpp
   QmitkIGTFiducialRegistration.cpp
   QmitkIGTNavigationToolCalibration.cpp
+  dentalEndEffectorCalibration.cpp
 )
 
 set(UI_FILES

@@ -69,6 +69,7 @@ if(NOT DEFINED ITK_DIR)
        -DGDCM_DIR:PATH=${GDCM_DIR}
        -DITK_USE_SYSTEM_HDF5:BOOL=ON
        -DHDF5_DIR:PATH=${HDF5_DIR}
+	   -DModule_TwoProjectionRegistration:BOOL=OFF
        ${${proj}_CUSTOM_CMAKE_ARGS}
      CMAKE_CACHE_ARGS
        ${ep_common_cache_args}
