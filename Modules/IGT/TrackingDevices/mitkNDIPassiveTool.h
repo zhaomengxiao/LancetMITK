@@ -17,10 +17,14 @@ found in the LICENSE file.
 #include <mitkTrackingTool.h>
 #include "mitkTrackingTypes.h"
 
+namespace lancet
+{
+  class NDIVegaTrackingDevice;
+}
 namespace mitk
 {
   class NDITrackingDevice;
-  class LancetVegaTrackingDevice;
+  
   /**Documentation
   * \brief Implementation of a passive NDI optical tool
   *
@@ -33,7 +37,7 @@ namespace mitk
   {
   public:
     friend class NDITrackingDevice;
-    friend class LancetVegaTrackingDevice;
+    friend class lancet::NDIVegaTrackingDevice;
     /**
     * \brief tracking priority for NDI tracking devices
     */

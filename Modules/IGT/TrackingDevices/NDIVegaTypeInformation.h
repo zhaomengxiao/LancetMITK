@@ -3,13 +3,13 @@
 // mitk
 #include <mitkTrackingDeviceTypeInformation.h>
 
-namespace mitk
+namespace lancet
 {
 
-    class MITKIGT_EXPORT LancetVegaTrackingDeviceTypeInformation : public mitk::TrackingDeviceTypeInformation
+    class MITKIGT_EXPORT NDIVegaTypeInformation : public mitk::TrackingDeviceTypeInformation
     {
     public:
-        LancetVegaTrackingDeviceTypeInformation();
+        NDIVegaTypeInformation();
         mitk::TrackingDeviceSource::Pointer CreateTrackingDeviceSource(mitk::TrackingDevice::Pointer trackingDevice,
             mitk::NavigationToolStorage::Pointer navigationTools,
             std::string* errorMessage,
