@@ -17,7 +17,7 @@ found in the LICENSE file.
 #include "mitkNDIAuroraTypeInformation.h"
 #include "mitkNDIPolarisTypeInformation.h"
 #include "mitkVirtualTrackerTypeInformation.h"
-#include "NDIVegaTypeInformation.h"
+#include "lancetVegaTypeInformation.h"
 #include "mitkOpenIGTLinkTypeInformation.h"
 #ifdef MITK_USE_MICRON_TRACKER
 #include "mitkMicronTrackerTypeInformation.h"

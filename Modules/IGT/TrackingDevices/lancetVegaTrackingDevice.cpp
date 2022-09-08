@@ -1,7 +1,7 @@
-#include "NDIVegaTrackingDevice.h"
+#include "lancetVegaTrackingDevice.h"
 #include "mitkIGTHardwareException.h"
 #include "mitkIGTTimeStamp.h"
-#include "NDIVegaTypeInformation.h"
+#include "lancetVegaTypeInformation.h"
 //#include "IGTController.h"
 // vtk
 

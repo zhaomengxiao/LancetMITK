@@ -20,7 +20,7 @@ found in the LICENSE file.
 #include "mitkMicronTrackerTypeInformation.h"
 #include "mitkNPOptitrackTrackingTypeInformation.h"
 #include "mitkOpenIGTLinkTypeInformation.h"
-#include "NDIVegaTypeInformation.h"
+#include "lancetVegaTypeInformation.h"
 
 //standard tracking devices, which always should be avaiable
 #include "QmitkNDIAuroraWidget.h"

@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 #include "QmitkNDIVegaWidget.h"
 
-#include "NDIVegaTrackingDevice.h"
-#include "NDIVegaTypeInformation.h"
+#include "lancetVegaTrackingDevice.h"
+#include "lancetVegaTypeInformation.h"
 
 #include <QScrollBar>
 #include <QSettings>

@@ -1,5 +1,5 @@
-#include "NDIVegaTypeInformation.h"
-#include "NDIVegaTrackingDevice.h"
+#include "lancetVegaTypeInformation.h"
+#include "lancetVegaTrackingDevice.h"
 
 namespace lancet
 {
