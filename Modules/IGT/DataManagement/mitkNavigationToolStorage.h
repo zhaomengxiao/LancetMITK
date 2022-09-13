@@ -107,6 +107,13 @@ namespace mitk {
      */
     mitk::NavigationTool::Pointer GetToolByName(std::string name);
 
+    /**
+     * @return Returns the tracking tool index with the given name.
+     *         Returns -1 if there is no
+     *         tracking tool with this name in the storage.
+     */
+    int GetToolIndexByName(std::string name);
+
     /** Assigns the given number to the tool with the given identifier. This means the tool is swapped with another tool in the internal tool vector.
      *  @return Returns true if the assignment was successfull. Returns false if assignment is not possible, e.g. because the identifier does not exist or if the given number is not available.
      **/
