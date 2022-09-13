@@ -201,21 +201,20 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   mitk::NavigationData::Pointer m_dentalSteelballDrfNDPointer;
 
   double m_points_designSteelballCenters[21]
-  {
-    3.73, -14.54, -3.75,
-   12.50, -14.0, -8.75,
-    21.27, -14.54, -3.75,
-    26.50, -8.74, -2.75,
-    25.80, 3.01, -7.25,
-    3.09, 3.51, -4.25,
-    -1.2, -10.28, -2.75
+  {25.36, -152.54, -21.55,
+    21.88,  -155.34, -12.45,
+    21.98, -151.21, -6.14,
+    26.85,   -140.02, -4.47,
+    20.11, -133.68, -25.36,
+    17.35, -145.66, -32.41,
+    18.93, -150.78, -29.20
   }; // the design locations of the steelballs in given coordinate system Fr
 
   double m_points_designCheckpointLocations[9]
   {
-    0.0, 0.0, 0.0,
-    12.5, -11, -2.0,
-    25.0, 0.0, -4.0
+    15.26, -136.02, -28.42,
+    18.83, -149.88, -19.68,
+    23.39, -142.49, -5.33
   }; // the design locations of the checkpoints in given coordinate system Fr
 
 
