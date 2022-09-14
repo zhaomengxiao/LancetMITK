@@ -11,6 +11,7 @@ set(INTERNAL_CPP_FILES
   QmitkIGTNavigationToolCalibration.cpp
   dentalEndEffectorCalibration.cpp
   dentalSteelballCalibration.cpp
+  dentalRoboRegistration.cpp
 )
 
 set(UI_FILES

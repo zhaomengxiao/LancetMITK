@@ -96,6 +96,21 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   // --------------------end of Dental steelball calibration slots ----------------------
 
 
+  // -------------------- Start of Dental robotic arm registration slots ------------------- 
+  void ConfirmProbe_roboRegis();
+  void ConfirmRoboDrf_roboRegis();
+
+  void CollectPointAroundAxis1_roboRegis();
+  void CollectPointAroundAxis2_roboRegis();
+  
+  void RemovePointAxis1_roboRegis();
+  void RemovePointAxis2_roboRegis();
+ 
+  void GetMatrixDrfToFlange_roboRegis();
+
+  // -------------------- End of Dental robotic arm registration slots ------------------- 
+
+
   protected:
 
     void InitializeRegistration();
@@ -243,6 +258,29 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   bool GetSteelballCentersInDrfCoordinate();
 
   //-----------End of Dental steelball calibration ---------------------
+
+
+  //---------------Start of dental robotic arm registration ------------------------
+  mitk::NavigationData::Pointer m_probeNDpointer_roboRegis;
+  mitk::NavigationData::Pointer m_roboDrfNDpointer_roboRegis;
+
+  double m_matrix_ndiToInitialPosture[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // from NDI
+
+  double m_matrix_flangeToRot_roboRegis[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // intermediate variable
+  double m_matrix_ndiToRot_roboRegis[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // intermediate variable
+
+  double m_matrix_flangeToDrf_roboRegis[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // final output
+
+  double m_axis1Direction[3]{0};
+  double m_axis2Direction[3]{0};
+
+  bool GetMatrixFlangeToRot();
+  bool GetMatrixNdiToRot();
+  bool GetAxis_roboRegis(mitk::PointSet::Pointer pointsAroundAxis, double axis[3]);
+  bool GetFlageOriginInNdi_roboRegis(mitk::PointSet::Pointer points, double center[3]);
+
+  //---------------End of dental robotic arm registration ------------------------
+
 
 };
 

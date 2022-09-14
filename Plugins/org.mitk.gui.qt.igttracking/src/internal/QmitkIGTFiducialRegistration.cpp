@@ -137,6 +137,25 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
           this,
           SLOT(CompareSteelballs()));
 
+  connect(m_Controls.pushButton_confirmProbe_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmProbe_roboRegis()));
+  connect(m_Controls.pushButton_confirmRoboDrf_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmRoboDrf_roboRegis()));
+  connect(
+    m_Controls.pushButton_collectAxis1Points_roboRegis, SIGNAL(clicked()), this, SLOT(CollectPointAroundAxis1_roboRegis()));
+  connect(m_Controls.pushButton_collectAxis2Points_roboRegis,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectPointAroundAxis2_roboRegis()));
+
+  connect(m_Controls.pushButton_removeAxis1Previous_roboRegis,
+          SIGNAL(clicked()),
+          this, SLOT(RemovePointAxis1_roboRegis()));
+
+  connect(
+    m_Controls.pushButton_removeAxis2Previous_roboRegis, SIGNAL(clicked()), this, SLOT(RemovePointAxis2_roboRegis()));
+
+  connect(m_Controls.pushButton_getDrfToFlangeMatrix, SIGNAL(clicked()), this, SLOT(GetMatrixDrfToFlange_roboRegis()));
+
+
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();
 
