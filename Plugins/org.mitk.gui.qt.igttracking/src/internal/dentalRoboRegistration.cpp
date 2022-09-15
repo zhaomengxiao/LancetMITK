@@ -86,7 +86,6 @@ void QmitkIGTFiducialRegistration::CollectPointAroundAxis1_roboRegis()
         m_matrix_ndiToInitialPosture[4 * i + j] = ndiToInitialPostureMatrix->GetElement(i, j);
       }
     }
-
     m_Controls.textBrowser_roboRegis->append("Initial Posture captured");
   }
 
@@ -190,6 +189,10 @@ void QmitkIGTFiducialRegistration::GetMatrixDrfToFlange_roboRegis()
 
     vtkNew<vtkMatrix4x4> vtkMatrixNdiToInitialPosture;
     vtkMatrixNdiToInitialPosture->DeepCopy(m_matrix_ndiToInitialPosture);
+
+    Eigen::Matrix4d infoMatrix{m_matrix_ndiToInitialPosture};
+    infoMatrix.transposeInPlace();
+    MITK_INFO << "matrix NDI to DRF:" << endl << infoMatrix;
 
     vtkNew<vtkTransform> transFlangeToDrf;
     transFlangeToDrf->Identity();
@@ -305,7 +308,7 @@ bool QmitkIGTFiducialRegistration::GetMatrixNdiToRot()
   int axis1PointNum = axis1PointSet->GetSize();
   int axis2PointNum = axis2PointSet->GetSize();
 
-  if (axis1PointNum < 0)
+  if (axis1PointNum < 3)
   {
     m_Controls.textBrowser_roboRegis->append("PointSet around axis 1 not sufficient ! ");
     return false;
@@ -387,29 +390,29 @@ bool QmitkIGTFiducialRegistration::GetAxis_roboRegis(mitk::PointSet::Pointer poi
   }
 
   // Get the axis using cross product
+  auto point0 = pointsAroundAxis->GetPoint(0);
+  auto point1 = pointsAroundAxis->GetPoint(1);
+  auto point2 = pointsAroundAxis->GetPoint(3);
+
+  Eigen::Vector3d p0;
+  Eigen::Vector3d p1;
+  Eigen::Vector3d p2;
+
+  for (int i{0}; i < 3; i++)
+  {
+    p0[i] = point0[i];
+    p1[i] = point1[i];
+    p2[i] = point2[i];
+  }
+
+  Eigen::Vector3d v0 = p1 - p0;
+  Eigen::Vector3d v1 = p2 - p0;
+
+  Eigen::Vector3d axisVector = v0.cross(v1);
+  axisVector.normalize();
+
   if (pointNum == 3)
   {
-    auto point0 = pointsAroundAxis->GetPoint(0);
-    auto point1 = pointsAroundAxis->GetPoint(1);
-    auto point2 = pointsAroundAxis->GetPoint(3);
-
-    Eigen::Vector3d p0;
-    Eigen::Vector3d p1;
-    Eigen::Vector3d p2;
-
-    for (int i{0}; i < 3; i ++ )
-    {
-      p0[i] = point0[i];
-      p1[i] = point1[i];
-      p2[i] = point2[i];
-    }
-
-    Eigen::Vector3d v0 = p1 - p0;
-    Eigen::Vector3d v1 = p2 - p0;
-
-    Eigen::Vector3d axisVector = v0.cross(v1);
-    axisVector.normalize();
-
     axis[0] = axisVector[0];
     axis[1] = axisVector[1];
     axis[2] = axisVector[2];
@@ -431,10 +434,21 @@ bool QmitkIGTFiducialRegistration::GetAxis_roboRegis(mitk::PointSet::Pointer poi
 
   lancetAlgorithm::fit_circle_3d(inp_pointset, outp_center, outp_radius, outp_normal);
 
-  axis[0] = outp_normal[0];
-  axis[1] = outp_normal[1];
-  axis[2] = outp_normal[2];
+  if ((outp_normal[0] * axisVector[0] + outp_normal[1] * axisVector[1] + outp_normal[2] * axisVector[2]) > 0)
+  {
+    axis[0] = outp_normal[0];
+    axis[1] = outp_normal[1];
+    axis[2] = outp_normal[2];
+  }
+  else
+  {
+    axis[0] = - outp_normal[0];
+    axis[1] = - outp_normal[1];
+    axis[2] = - outp_normal[2];
+  }
 
+
+ 
   return true;
 }
 
