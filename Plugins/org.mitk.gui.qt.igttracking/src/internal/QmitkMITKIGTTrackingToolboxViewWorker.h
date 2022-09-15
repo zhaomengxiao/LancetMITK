@@ -18,8 +18,10 @@ found in the LICENSE file.
 //mitk headers
 #include <mitkNavigationToolStorage.h>
 #include <mitkTrackingDeviceSource.h>
-#include <mitkNavigationDataObjectVisualizationFilter.h>
-#include  <mitkNavigationDataInReferenceCoordFilter.h>
+#include <lancetNavigationObject.h>
+//#include <mitkNavigationDataObjectVisualizationFilter.h>
+#include <lancetNavigationObjectVisualizationFilter.h>
+#include <lancetNavigationDataInReferenceCoordFilter.h>
 //QT headers
 #include <QTimer>
 
@@ -48,6 +50,7 @@ public:
   void SetInverseMode(bool mode);
   void SetTrackingDeviceData(mitk::TrackingDeviceData d);
   void SetNavigationToolStorage(mitk::NavigationToolStorage::Pointer n);
+  void SetNavigationObject(lancet::NavigationObject::Pointer n);
   void SetRefCoordMode(bool mode);
   void SetRefToolIndex(int index);
 
@@ -55,8 +58,8 @@ public:
 
   mitk::TrackingDeviceSource::Pointer GetTrackingDeviceSource();
   itkGetMacro(TrackingDeviceData, mitk::TrackingDeviceData);
-  itkGetMacro(ToolVisualizationFilter, mitk::NavigationDataObjectVisualizationFilter::Pointer);
-  itkGetMacro(ReferenceFilter, mitk::NavigationDataInReferenceCoordFilter::Pointer);
+  itkGetMacro(ToolVisualizationFilter, lancet::NavigationObjectVisualizationFilter::Pointer);
+  itkGetMacro(ReferenceFilter, lancet::NavigationDataInReferenceCoordFilter::Pointer);
 
   public slots:
   void ThreadFunc();
@@ -74,12 +77,13 @@ protected:
   WorkerMethod m_WorkerMethod;
   mitk::DataStorage::Pointer m_DataStorage;
   mitk::NavigationToolStorage::Pointer m_NavigationToolStorage;
+  lancet::NavigationObject::Pointer m_NavigationObject;
 
   //members for the filter pipeline which is created in the worker thread during ConnectDevice()
   mitk::TrackingDeviceSource::Pointer m_TrackingDeviceSource; ///> member for the source of the IGT pipeline
   mitk::TrackingDeviceData m_TrackingDeviceData; ///> stores the tracking device data as long as this is not handled by the tracking device configuration widget
-  mitk::NavigationDataObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (third filter of the IGT pipeline)
-  mitk::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the reference coords filter (second filter of the IGT pipeline)
+  lancet::NavigationObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (third filter of the IGT pipeline)
+  lancet::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the reference coords filter (second filter of the IGT pipeline)
 
   //members some internal flags
   bool m_InverseMode;     //flag that is true when the inverse mode is enabled

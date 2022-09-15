@@ -147,6 +147,7 @@ bool mitk::NavigationToolStorage::AddTool(mitk::NavigationTool::Pointer tool)
 
 mitk::NavigationTool::Pointer mitk::NavigationToolStorage::GetTool(int number)
 {
+  //todo check if number > toolCount
   return m_ToolCollection.at(number);
 }
 
@@ -160,6 +161,14 @@ mitk::NavigationTool::Pointer mitk::NavigationToolStorage::GetToolByName(std::st
 {
   for (unsigned int i = 0; i < GetToolCount(); i++) if ((GetTool(i)->GetToolName()) == name) return GetTool(i);
   return nullptr;
+}
+
+int mitk::NavigationToolStorage::GetToolIndexByName(std::string name)
+{
+  for (unsigned int i = 0; i < GetToolCount(); i++)
+    if ((GetTool(i)->GetToolName()) == name)
+      return i;
+  return -1;
 }
 
 unsigned int mitk::NavigationToolStorage::GetToolCount()

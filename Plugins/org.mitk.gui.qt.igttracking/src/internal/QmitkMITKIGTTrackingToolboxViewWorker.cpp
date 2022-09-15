@@ -13,7 +13,8 @@ found in the LICENSE file.
 // Qmitk
 #include "QmitkMITKIGTTrackingToolboxViewWorker.h"
 
-#include <mitkTrackingDeviceSourceConfigurator.h>
+//#include <mitkTrackingDeviceSourceConfigurator.h>
+#include <lancetTrackingDeviceSourceConfigurator.h>
 
 QmitkMITKIGTTrackingToolboxViewWorker::QmitkMITKIGTTrackingToolboxViewWorker()
 {
@@ -53,6 +54,11 @@ void QmitkMITKIGTTrackingToolboxViewWorker::SetNavigationToolStorage(mitk::Navig
   m_NavigationToolStorage = n;
 }
 
+void QmitkMITKIGTTrackingToolboxViewWorker::SetNavigationObject(lancet::NavigationObject::Pointer n)
+{
+  m_NavigationObject = n;
+}
+
 void QmitkMITKIGTTrackingToolboxViewWorker::SetRefCoordMode(bool mode)
 {
   m_RefCoordMode = mode;
@@ -70,26 +76,27 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ThreadFunc()
 {
   switch (m_WorkerMethod)
   {
-  case eAutoDetectTools:
-    this->AutoDetectTools();
-    break;
-  case eConnectDevice:
-    this->ConnectDevice();
-    break;
-  case eStartTracking:
-    this->StartTracking();
-    break;
-  case eStopTracking:
-    this->StopTracking();
-    break;
-  case eDisconnectDevice:
-    this->DisconnectDevice();
-    break;
-  default:
-    MITK_WARN << "Undefined worker method was set ... something went wrong!";
-    break;
+    case eAutoDetectTools:
+      this->AutoDetectTools();
+      break;
+    case eConnectDevice:
+      this->ConnectDevice();
+      break;
+    case eStartTracking:
+      this->StartTracking();
+      break;
+    case eStopTracking:
+      this->StopTracking();
+      break;
+    case eDisconnectDevice:
+      this->DisconnectDevice();
+      break;
+    default:
+      MITK_WARN << "Undefined worker method was set ... something went wrong!";
+      break;
   }
 }
+
 //! [Thread 7]
 
 void QmitkMITKIGTTrackingToolboxViewWorker::AutoDetectTools()
@@ -98,9 +105,12 @@ void QmitkMITKIGTTrackingToolboxViewWorker::AutoDetectTools()
   try
   {
     mitk::NavigationToolStorage::Pointer tempStorage = m_TrackingDevice->AutoDetectTools();
-    for (unsigned int i = 0; i < tempStorage->GetToolCount(); i++) { autoDetectedStorage->AddTool(tempStorage->GetTool(i)); }
+    for (unsigned int i = 0; i < tempStorage->GetToolCount(); i++)
+    {
+      autoDetectedStorage->AddTool(tempStorage->GetTool(i));
+    }
   }
-  catch (mitk::Exception& e)
+  catch (mitk::Exception &e)
   {
     MITK_WARN << e.GetDescription();
     emit AutoDetectToolsFinished(false, e.GetDescription());
@@ -126,12 +136,12 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
     trackingDevice->SetRotationMode(mitk::TrackingDevice::RotationTransposed);
   }
 
-
   //Get Tracking Volume Data
   mitk::TrackingDeviceData data = m_TrackingDeviceData;
 
   //Create Navigation Data Source with the factory class
-  mitk::TrackingDeviceSourceConfigurator::Pointer myTrackingDeviceSourceFactory = mitk::TrackingDeviceSourceConfigurator::New(m_NavigationToolStorage, trackingDevice);
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer myTrackingDeviceSourceFactory =
+    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_NavigationToolStorage, trackingDevice, m_NavigationObject);
   if (m_RefCoordMode)
   {
     m_TrackingDeviceSource =
@@ -139,10 +149,10 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
     if (m_ReferenceFilter.IsNotNull())
     {
-        // set the reference tool index
-        m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
-        m_ReferenceFilter->SetName("referenceFilter");
-        m_ReferenceFilter->RegisterAsMicroservice();
+      // set the reference tool index
+      m_ReferenceFilter->SetRefToolIndex(m_RefToolIndex);
+      m_ReferenceFilter->SetName("referenceFilter");
+      m_ReferenceFilter->RegisterAsMicroservice();
     }
   }
   else
@@ -153,8 +163,9 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
   if (m_ToolVisualizationFilter.IsNotNull())
   {
-      m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
-      m_ToolVisualizationFilter->RegisterAsMicroservice();
+    m_ToolVisualizationFilter->SetName("ToolVisualizationFilter");
+    //m_ToolVisualizationFilter->SetNavigationObject(m_NavigationObject);
+    m_ToolVisualizationFilter->RegisterAsMicroservice();
   }
 
   if (m_TrackingDeviceSource.IsNull())
@@ -166,9 +177,8 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
 
   //set filter to rotation mode transposed becaus we are working with VNL style quaternions
   if (m_InverseMode)
-    m_ToolVisualizationFilter->SetRotationMode(mitk::NavigationDataObjectVisualizationFilter::RotationTransposed);
+    m_ToolVisualizationFilter->SetRotationMode(lancet::NavigationObjectVisualizationFilter::RotationTransposed);
 
- 
   //First check if the created object is valid
   if (m_TrackingDeviceSource.IsNull())
   {
@@ -186,7 +196,9 @@ void QmitkMITKIGTTrackingToolboxViewWorker::ConnectDevice()
     //Microservice registration:
     m_TrackingDeviceSource->SetToolMetaDataCollection(m_NavigationToolStorage);
     m_TrackingDeviceSource->RegisterAsMicroservice();
-    m_NavigationToolStorage->SetSourceID(m_TrackingDeviceSource->GetMicroserviceID()); //DEPRECATED / not needed anymore because NavigationDataSource now holds a member of its tool storage. Only left for backward compatibility.
+
+   // m_NavigationToolStorage->SetSourceID(m_TrackingDeviceSource->GetMicroserviceID());
+    //DEPRECATED / not needed anymore because NavigationDataSource now holds a member of its tool storage. Only left for backward compatibility.
     m_NavigationToolStorage->LockStorage();
   }
   catch (...) //todo: change to mitk::IGTException
@@ -240,7 +252,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::StopTracking()
   {
     m_TrackingDeviceSource->StopTracking();
   }
-  catch (mitk::Exception& e)
+  catch (mitk::Exception &e)
   {
     emit StopTrackingFinished(false, e.GetDescription());
   }
@@ -285,7 +297,7 @@ void QmitkMITKIGTTrackingToolboxViewWorker::DisconnectDevice()
 
     m_TrackingDeviceSource = nullptr;
   }
-  catch (mitk::Exception& e)
+  catch (mitk::Exception &e)
   {
     emit DisconnectDeviceFinished(false, e.GetDescription());
   }

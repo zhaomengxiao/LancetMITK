@@ -147,6 +147,7 @@ void QmitkMITKIGTTrackingToolboxView::CreateQtPartControl(QWidget *parent)
 
     //create connections
     connect(m_Controls->m_LoadTools, SIGNAL(clicked()), this, SLOT(OnLoadTools()));
+    connect(m_Controls->pushButton_SetNavObj, SIGNAL(clicked()), this, SLOT(OnSetNavObj()));
     connect(m_Controls->m_ConnectDisconnectButton, SIGNAL(clicked()), this, SLOT(OnConnectDisconnect()));
     connect(m_Controls->m_StartStopTrackingButton, SIGNAL(clicked()), this, SLOT(OnStartStopTracking()));
     connect(m_Controls->m_ConnectSimpleMode, SIGNAL(clicked()), this, SLOT(OnConnectDisconnect()));
@@ -320,6 +321,16 @@ void QmitkMITKIGTTrackingToolboxView::OnLoadTools()
 
   //save filename for persistent storage
   m_ToolStorageFilename = filename;
+}
+
+void QmitkMITKIGTTrackingToolboxView::OnSetNavObj()
+{
+  lancet::NavigationObject::Pointer navObj = lancet::NavigationObject::New();
+  navObj->SetDataNode(GetDataStorage()->GetNamedNode("ball"));
+  navObj->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("test"));
+  navObj->SetReferencFrameName("A");
+  m_NavigationObject = navObj;
+  MITK_INFO << "set nav obj";
 }
 
 void QmitkMITKIGTTrackingToolboxView::OnResetTools()
@@ -514,6 +525,7 @@ void QmitkMITKIGTTrackingToolboxView::OnConnect()
   m_Worker->SetRefCoordMode(m_Controls->checkBox_refcoord->isChecked());
   m_Worker->SetRefToolIndex(m_Controls->spinBox_reftool->value());
   m_Worker->SetNavigationToolStorage(this->m_toolStorage);
+  m_Worker->SetNavigationObject(this->m_NavigationObject);
   m_Worker->SetTrackingDeviceData(data);
   //start worker thread
   m_WorkerThread->start();

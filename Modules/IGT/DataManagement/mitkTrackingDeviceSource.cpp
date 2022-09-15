@@ -104,6 +104,11 @@ void mitk::TrackingDeviceSource::SetTrackingDevice( mitk::TrackingDevice* td )
   }
 }
 
+mitk::TrackingDevice::Pointer mitk::TrackingDeviceSource::GetTrackingDevice()
+{
+  return m_TrackingDevice;
+}
+
 void mitk::TrackingDeviceSource::CreateOutputs(){
   //if outputs are set then delete them
   if (this->GetNumberOfOutputs() > 0)

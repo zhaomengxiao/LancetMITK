@@ -23,7 +23,9 @@ found in the LICENSE file.
 
 //mitk headers
 #include <mitkNavigationToolStorage.h>
-#include <mitkNavigationDataObjectVisualizationFilter.h>
+#include <lancetNavigationObject.h>
+//#include <mitkNavigationDataObjectVisualizationFilter.h>
+#include <lancetNavigationObjectVisualizationFilter.h>
 #include <mitkNavigationDataRecorder.h>
 #include <mitkNavigationDataToIGTLMessageFilter.h>
 #include <mitkIGTLServer.h>
@@ -73,6 +75,7 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
                corrupt or not valid the user gets an error message. If the file was loaded successfully the tools are show in the tool status widget. */
     void OnLoadTools();
 
+    void OnSetNavObj();
     /** Starts tracking if tracking is stopped / stops tracking if tracking is started. */
     void OnStartStopTracking();
 
@@ -191,6 +194,7 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
     int m_loggedFrames; ///> stores the current number of logged frames if logging is on
 
     mitk::NavigationToolStorage::Pointer m_toolStorage;  ///>stores the loaded tools
+    lancet::NavigationObject::Pointer m_NavigationObject; ///>stores the loaded tools
     mitk::DataNode::Pointer m_TrackingVolumeNode;        ///>holds the data node of the tracking volume if volume is visualized
     bool lastTrackingVolumeState;                        ///>temporary holds the state of the tracking volume (activated/not activated) during some methods
 
@@ -205,8 +209,8 @@ class QmitkMITKIGTTrackingToolboxView : public QmitkAbstractView
 
    //members for the filter pipeline
    mitk::TrackingDeviceData m_TrackingDeviceData; ///> stores the tracking device data as long as this is not handled by the tracking device configuration widget
-   mitk::NavigationDataObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (second filter of the IGT pipeline)
-   mitk::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the NavigationDataInReferenceCoord Filter (second filter of the IGT pipeline)
+   lancet::NavigationObjectVisualizationFilter::Pointer m_ToolVisualizationFilter; ///> holds the tool visualization filter (second filter of the IGT pipeline)
+   lancet::NavigationDataInReferenceCoordFilter::Pointer m_ReferenceFilter; ///> holds the NavigationDataInReferenceCoord Filter (second filter of the IGT pipeline)
    mitk::NavigationDataRecorder::Pointer m_loggingFilter; ///> holds the logging filter if logging is on (third filter of the IGT pipeline)
    itk::SmartPointer<mitk::NeedleProjectionFilter> m_NeedleProjectionFilter; ///> Contains the needle projection filter which is used for displaying the tool projection and the tool axis during tracking (optional third filter of the IGT pipeline). The filter is updated in the method UpdateRenderTrackingTimer().
 

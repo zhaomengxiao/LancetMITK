@@ -1,26 +1,25 @@
-#include "LancetVegaTrackingDevice.h"
+#include "lancetVegaTrackingDevice.h"
 #include "mitkIGTHardwareException.h"
 #include "mitkIGTTimeStamp.h"
-#include "LancetVegaTrackingDeviceTypeInformation.h"
-#include "mitkNDIPassiveTool.h"
+#include "lancetVegaTypeInformation.h"
 //#include "IGTController.h"
 // vtk
 
 
-namespace mitk
+namespace lancet
 {
-  LancetVegaTrackingDevice::LancetVegaTrackingDevice()
+  NDIVegaTrackingDevice::NDIVegaTrackingDevice()
     : TrackingDevice(),
-      m_DeviceName("LancetVega"),
+      m_DeviceName("Vega"),
       m_hostName("192.168.1.10"),
-      m_OperationMode(ToolTracking6D)
+      m_OperationMode(mitk::ToolTracking6D)
   {
-    m_Data = LancetVegaTrackingDeviceTypeInformation::GetDeviceDataLancetVegaTrackingDevice();
+    m_Data = lancet::NDIVegaTypeInformation::GetDeviceDataLancetVegaTrackingDevice();
     m_6DTools.clear();
     m_MarkerPoints.reserve(50); // a maximum of 50 marker positions can be reported by the tracking device
   }
 
-  LancetVegaTrackingDevice::~LancetVegaTrackingDevice()
+  NDIVegaTrackingDevice::~NDIVegaTrackingDevice()
   {
     if (this->GetState() == Tracking)
     {
@@ -32,7 +31,7 @@ namespace mitk
     }
   }
 
-  /*bool LancetVegaTrackingDevice::SetVolume(mitk::TrackingDeviceData volume)
+  /*bool NDIVegaTrackingDevice::SetVolume(mitk::TrackingDeviceData volume)
   {
       if (m_DeviceProtocol->VSEL(volume) != mitk::NDIOKAY)
       {
@@ -41,12 +40,12 @@ namespace mitk
       return true;
   }*/
 
-  bool LancetVegaTrackingDevice::InternalAddTool(NDIPassiveTool *tool)
+  bool NDIVegaTrackingDevice::InternalAddTool(mitk::NDIPassiveTool *tool)
   {
     MITK_INFO << "InternalAddTool Called!!!!";
     if (tool == nullptr)
       return false;
-    NDIPassiveTool::Pointer p = tool;
+    mitk::NDIPassiveTool::Pointer p = tool;
     //p->Enable();
     int returnValue;
     /* if the connection to the tracking device is already established, add the new tool to the device now */
@@ -97,7 +96,7 @@ namespace mitk
       return false;
   }
 
-  std::string LancetVegaTrackingDevice::intToString(int input, int width) const
+  std::string NDIVegaTrackingDevice::intToString(int input, int width) const
   {
     std::stringstream convert;
     convert << std::dec << std::setfill('0');
@@ -105,7 +104,7 @@ namespace mitk
     return convert.str();
   }
 
-  bool LancetVegaTrackingDevice::StartTracking()
+  bool NDIVegaTrackingDevice::StartTracking()
   {
     if (this->GetState() != Ready)
       return false;
@@ -115,14 +114,14 @@ namespace mitk
     this->m_StopTracking = false;
     this->m_StopTrackingMutex.unlock();
 
-    m_Thread = std::thread(&LancetVegaTrackingDevice::ThreadStartTracking, this);
+    m_Thread = std::thread(&NDIVegaTrackingDevice::ThreadStartTracking, this);
     // start a new thread that executes the TrackTools() method
     mitk::IGTTimeStamp::GetInstance()->Start(this);
     MITK_INFO << "lancet vega start tracking";
     return true;
   }
 
-  bool LancetVegaTrackingDevice::OpenConnection()
+  bool NDIVegaTrackingDevice::OpenConnection()
   {
     if (this->GetState() != Setup)
     {
@@ -174,7 +173,7 @@ namespace mitk
         {
           (*it)->SetPortHandle(intToString(portHandle, 2));
           /* now write the SROM file of the tool to the tracking system using PVWR */
-          if (this->m_Data.Line == mitk::LancetVegaTrackingDeviceTypeInformation::GetTrackingDeviceName())
+          if (this->m_Data.Line == lancet::NDIVegaTypeInformation::GetTrackingDeviceName())
           {
             m_capi.loadSromToPort((*it)->GetFile(), portHandle);
 
@@ -207,7 +206,7 @@ namespace mitk
     return true;
   }
 
-  bool LancetVegaTrackingDevice::CloseConnection()
+  bool NDIVegaTrackingDevice::CloseConnection()
   {
     if (this->GetState() == Setup)
     {
@@ -218,7 +217,7 @@ namespace mitk
     return true;
   }
 
-  bool LancetVegaTrackingDevice::SetTrackingFrequency(unsigned n)
+  bool NDIVegaTrackingDevice::SetTrackingFrequency(unsigned n)
   {
       if (this->GetState() == Tracking)
           return false;
@@ -249,12 +248,12 @@ namespace mitk
       return true;
   }
 
-  unsigned int LancetVegaTrackingDevice::GetToolCount() const
+  unsigned int NDIVegaTrackingDevice::GetToolCount() const
   {
     return static_cast<unsigned int>(this->m_6DTools.size());
   }
 
-  TrackingTool *LancetVegaTrackingDevice::GetTool(unsigned int toolNumber) const
+  mitk::TrackingTool *NDIVegaTrackingDevice::GetTool(unsigned int toolNumber) const
   {
     std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
     if (toolNumber < m_6DTools.size())
@@ -262,7 +261,7 @@ namespace mitk
     return nullptr;
   }
 
-  TrackingTool *LancetVegaTrackingDevice::GetToolByName(std::string name) const
+  mitk::TrackingTool *NDIVegaTrackingDevice::GetToolByName(std::string name) const
   {
     std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
     auto end = m_6DTools.end();
@@ -272,7 +271,7 @@ namespace mitk
     return nullptr;
   }
 
-  NDIPassiveTool *LancetVegaTrackingDevice::GetInternalTool(std::string portHandle)
+  mitk::NDIPassiveTool *NDIVegaTrackingDevice::GetInternalTool(std::string portHandle)
   {
     std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
     auto end = m_6DTools.end();
@@ -282,11 +281,11 @@ namespace mitk
     return nullptr;
   }
 
-  TrackingTool *LancetVegaTrackingDevice::AddTool(const char *toolName,
-                                                  const char *fileName,
-                                                  TrackingPriority p /*= NDIPassiveTool::Dynamic*/)
+  mitk::TrackingTool *NDIVegaTrackingDevice::AddTool(const char *toolName,
+                                                        const char *fileName,
+                                                        TrackingPriority p /*= NDIPassiveTool::Dynamic*/)
   {
-    NDIPassiveTool::Pointer t = NDIPassiveTool::New();
+    mitk::NDIPassiveTool::Pointer t = mitk::NDIPassiveTool::New();
     if (t->LoadSROMFile(fileName) == false)
       return nullptr;
     t->SetToolName(toolName);
@@ -300,16 +299,8 @@ namespace mitk
     return t.GetPointer();
   }
 
-  TrackingTool *LancetVegaTrackingDevice::AddRefTool(unsigned int toolNumber, unsigned int refNumber)
-  {
-    mitk::NDIPassiveTool::New();
-    mitk::NDIPassiveTool::Pointer pTool = mitk::NDIPassiveTool::New();
-    pTool->SetToolName(std::to_string(toolNumber) + '\n' + std::to_string(refNumber));
-    this->m_6DTools.push_back(pTool);
-    return pTool;
-  }
 
-  bool LancetVegaTrackingDevice::RemoveTool(mitk::TrackingTool *pTool)
+  bool NDIVegaTrackingDevice::RemoveTool(mitk::TrackingTool *pTool)
 
   {
     Tool6DContainerType::const_iterator cit = std::find(
@@ -325,17 +316,17 @@ namespace mitk
     return true;
   }
 
-  void LancetVegaTrackingDevice::ClearTool()
+  void NDIVegaTrackingDevice::ClearTool()
   {
     this->m_6DTools.clear();
   }
 
-  OperationMode LancetVegaTrackingDevice::GetOperationMode() const
+  mitk::OperationMode NDIVegaTrackingDevice::GetOperationMode() const
   {
     return m_OperationMode;
   }
 
-  void LancetVegaTrackingDevice::TrackTools()
+  void NDIVegaTrackingDevice::TrackTools()
   {
     MITK_INFO << "tracktools called";
     /* lock the TrackingFinishedMutex to signal that the execution rights are now transfered to the tracking thread */
@@ -372,7 +363,7 @@ namespace mitk
 
       for (auto toolData : dataOfTools)
       {
-        NDIPassiveTool::Pointer tool = GetInternalTool(intToString(toolData.transform.toolHandle, 2));
+        mitk::NDIPassiveTool::Pointer tool = GetInternalTool(intToString(toolData.transform.toolHandle, 2));
         mitk::Quaternion quaternion{toolData.transform.qx, toolData.transform.qy, toolData.transform.qz,
                                     toolData.transform.q0};
         tool->SetOrientation(quaternion);
@@ -407,10 +398,10 @@ namespace mitk
     // returning from this function (and ThreadStartTracking()) this will end the thread and transfer control back to main thread by releasing trackingFinishedLockHolder
   }
 
-  void LancetVegaTrackingDevice::ThreadStartTracking()
+  void NDIVegaTrackingDevice::ThreadStartTracking()
   {
     MITK_INFO << "threadStartTracking Called";
-    if (this->GetOperationMode() == ToolTracking6D)
+    if (this->GetOperationMode() == mitk::ToolTracking6D)
       this->TrackTools(); // call TrackTools() from the original object
                                     // else if (trackingDevice->GetOperationMode() == MarkerTracking3D)
     // trackingDevice->TrackMarkerPositions(); // call TrackMarkerPositions() from the original object
@@ -422,7 +413,7 @@ namespace mitk
     //}
   }
 
-  bool mitk::LancetVegaTrackingDevice::determineApiSupportForBX2()
+  bool NDIVegaTrackingDevice::determineApiSupportForBX2()
   {
     // Lookup the API revision
     std::string response = m_capi.getApiRevision();
@@ -442,7 +433,7 @@ namespace mitk
     return false;
   }
 
-  bool LancetVegaTrackingDevice::warningOrError(int code, const char *message) const
+  bool NDIVegaTrackingDevice::warningOrError(int code, const char *message) const
   {
     if (code >= 0)
     {

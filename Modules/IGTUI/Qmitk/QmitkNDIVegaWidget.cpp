@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 #include "QmitkNDIVegaWidget.h"
 
-#include "LancetVegaTrackingDevice.h"
-#include "LancetVegaTrackingDeviceTypeInformation.h"
+#include "lancetVegaTrackingDevice.h"
+#include "lancetVegaTypeInformation.h"
 
 #include <QScrollBar>
 #include <QSettings>
@@ -80,7 +80,7 @@ void QmitkNDIVegaWidget::AddOutput(std::string s)
 
 mitk::TrackingDevice::Pointer QmitkNDIVegaWidget::GetTrackingDevice()
 {
-  mitk::LancetVegaTrackingDevice::Pointer tempTrackingDevice = mitk::LancetVegaTrackingDevice::New();
+  lancet::NDIVegaTrackingDevice::Pointer tempTrackingDevice = lancet::NDIVegaTrackingDevice::New();
 
   //get port
   int port = 0;
@@ -102,7 +102,7 @@ mitk::TrackingDevice::Pointer QmitkNDIVegaWidget::GetTrackingDevice()
   tempTrackingDevice->SetTrackingFrequency(GetVegaTrackingRate());
   //tempTrackingDevice->SetDeviceName(portName.toStdString()); //set the port name
   //tempTrackingDevice->SetBaudRate(mitk::SerialCommunication::BaudRate115200);//set baud rate
-  tempTrackingDevice->SetType(mitk::LancetVegaTrackingDeviceTypeInformation::GetTrackingDeviceName());
+  tempTrackingDevice->SetType(lancet::NDIVegaTypeInformation::GetTrackingDeviceName());
   return static_cast<mitk::TrackingDevice::Pointer>(tempTrackingDevice);
 }
 

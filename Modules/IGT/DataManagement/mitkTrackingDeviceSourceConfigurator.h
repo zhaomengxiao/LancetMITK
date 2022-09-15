@@ -20,10 +20,10 @@ found in the LICENSE file.
 #include <itkObject.h>
 
 //mitk IGT includes
+#include "mitkNavigationDataObjectVisualizationFilter.h"
 #include "mitkTrackingDeviceSource.h"
 #include "mitkNavigationToolStorage.h"
-#include "mitkNavigationDataObjectVisualizationFilter.h"
-#include "mitkNavigationDataInReferenceCoordFilter.h"
+
 namespace mitk {
   /**Documentation
   * \brief This class offers a factory method for objects of the class TrackingDeviceSource. It initializes this TrackingDeviceSource with
@@ -56,14 +56,6 @@ namespace mitk {
      *                             This filter visualises the surfaces which are availiable by the navigation tool storage.
      */
     mitk::TrackingDeviceSource::Pointer CreateTrackingDeviceSource(mitk::NavigationDataObjectVisualizationFilter::Pointer &visualizationFilter);
-
-    /** @return Returns a new TrackingDeviceSource. Returns nullptr if there was an error on creating the
-     *          TrackingDeviceSource. If there was an error it's availiable as error message.
-     *  @param visualizationFilter (return value) returns a visualization filter which is already connected to the
-     * tracking device source. This filter visualises the surfaces which are availiable by the navigation tool storage.
-     */
-    mitk::TrackingDeviceSource::Pointer CreateTrackingDeviceSource(
-      mitk::NavigationDataObjectVisualizationFilter::Pointer &visualizationFilter,mitk::NavigationDataInReferenceCoordFilter::Pointer &referenceFilter);
 
     /** @return Returns the internal number of the corresponding tool in the tool storage of a output navigation data. Returns -1 if there was an error. */
     int GetToolNumberInToolStorage(unsigned int outputID);
@@ -98,9 +90,6 @@ namespace mitk {
     mitk::TrackingDevice::Pointer m_TrackingDevice;
     std::string m_ErrorMessage;
     std::vector<int> m_ToolCorrespondencesInToolStorage;
-
-    mitk::NavigationDataInReferenceCoordFilter::Pointer CreateNavigationDataInReferenceCoordFilter(
-      mitk::NavigationDataSource::Pointer trackingDeviceSource);
 
     mitk::NavigationDataObjectVisualizationFilter::Pointer CreateNavigationDataObjectVisualizationFilter(mitk::NavigationDataSource::Pointer trackingDeviceSource, mitk::NavigationToolStorage::Pointer navigationTools);
     

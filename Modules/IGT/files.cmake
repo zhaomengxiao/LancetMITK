@@ -18,8 +18,6 @@ set(CPP_FILES
   Algorithms/mitkNeedleProjectionFilter.cpp
   Algorithms/mitkPivotCalibration.cpp
 
-  Algorithms/mitkNavigationDataInReferenceCoordFilter.cpp
-
   Common/mitkIGTTimeStamp.cpp
   Common/mitkSerialCommunication.cpp
 
@@ -74,8 +72,8 @@ set(CPP_FILES
 #  TrackingDevices/mitkPolhemusTrackingDevice.cpp
 #  TrackingDevices/mitkPolhemusTool.cpp
 #  TrackingDevices/mitkPolhemusTrackerTypeInformation.cpp
-  TrackingDevices/LancetVegaTrackingDevice.cpp
-  TrackingDevices/LancetVegaTrackingDeviceTypeInformation.cpp
+  TrackingDevices/lancetVegaTrackingDevice.cpp
+  TrackingDevices/lancetVegaTypeInformation.cpp
 )
 
 set(H_FILES

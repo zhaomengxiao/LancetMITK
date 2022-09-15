@@ -5,7 +5,7 @@
 #include "mitkNDIPassiveTool.h"
 #include "CombinedApi.h"
 
-namespace mitk
+namespace lancet
 {
   /** Documentation
     * \brief superclass for specific NDI tracking Devices that use socket communication.
@@ -14,16 +14,16 @@ namespace mitk
     *
     * \ingroup IGT
     */
-  class MITKIGT_EXPORT LancetVegaTrackingDevice : public TrackingDevice
+  class MITKIGT_EXPORT NDIVegaTrackingDevice : public mitk::TrackingDevice
   {
   public:
-    mitkClassMacro(LancetVegaTrackingDevice, TrackingDevice);
+    mitkClassMacro(NDIVegaTrackingDevice, TrackingDevice);
     itkFactorylessNewMacro(Self)
     itkCloneMacro(Self)
 
     typedef std::vector<mitk::NDIPassiveTool::Pointer> Tool6DContainerType;
     ///< List of 6D tools of the correct type for this tracking device
-    typedef NDIPassiveTool::TrackingPriority TrackingPriority; ///< Tracking priority used for tracking a tool
+    typedef mitk::NDIPassiveTool::TrackingPriority TrackingPriority; ///< Tracking priority used for tracking a tool
 
     /**
      * @brief Opens the connection to the device. This have to be done before the tracking is started.
@@ -62,21 +62,19 @@ namespace mitk
      * \return Returns the tool which the number "toolNumber". Returns nullptr, if there is
      * no tool with this number.
      */
-    TrackingTool *GetTool(unsigned int toolNumber) const override;
+    mitk::TrackingTool *GetTool(unsigned int toolNumber) const override;
 
-    TrackingTool *GetToolByName(std::string name) const override;
+    mitk::TrackingTool *GetToolByName(std::string name) const override;
 
-    NDIPassiveTool *GetInternalTool(std::string portHandle);
+    mitk::NDIPassiveTool *GetInternalTool(std::string portHandle);
     ///< returns the tool object that has been assigned the port handle or nullptr if no tool can be found
 
-    TrackingTool *AddTool(const char *toolName, const char *fileName, TrackingPriority p = NDIPassiveTool::Dynamic);
+    mitk::TrackingTool *AddTool(const char *toolName, const char *fileName, TrackingPriority p = mitk::NDIPassiveTool::Dynamic);
 
-    TrackingTool *AddRefTool(unsigned int toolNumber, unsigned int refNumber);
-
-    bool RemoveTool(TrackingTool *pTool);
+    bool RemoveTool(mitk::TrackingTool *pTool);
     void ClearTool();
 
-    OperationMode GetOperationMode() const;
+    mitk::OperationMode GetOperationMode() const;
   public:
 
     /**
@@ -121,8 +119,8 @@ namespace mitk
     bool warningOrError(int code, const char *message) const;
 
   protected:
-    LancetVegaTrackingDevice();
-    virtual ~LancetVegaTrackingDevice() override;
+    NDIVegaTrackingDevice();
+    virtual ~NDIVegaTrackingDevice() override;
     /**
     * \brief Get number of supported tracking volumes, a vector containing the supported volumes and
     * a vector containing the signed dimensions in mm. For each volume 10 boundaries are stored in the order of
@@ -145,7 +143,7 @@ namespace mitk
     * @throw mitk::IGTHardwareException Throws an exception if there are errors while adding the tool.
     * \warning adding tools is not possible in tracking mode, only in setup and ready.
     */
-    virtual bool InternalAddTool(NDIPassiveTool *tool);
+    virtual bool InternalAddTool(mitk::NDIPassiveTool *tool);
 
     std::string intToString(int input, int width) const;
 
@@ -171,10 +169,10 @@ namespace mitk
     mutable std::mutex m_ToolsMutex; ///< mutex for coordinated access of tool container
 
     ///< creates tracking thread that continuously polls serial interface for new tracking data
-    std::thread m_Thread;                            ///< ID of tracking thread
-    OperationMode m_OperationMode;                   ///< tracking mode (6D tool tracking, 3D marker tracking,...)
-    std::mutex m_MarkerPointsMutex;                  ///< mutex for marker point data container
-    MarkerPointContainerType m_MarkerPoints;         ///< container for markers (3D point tracking mode)
+    std::thread m_Thread;                          ///< ID of tracking thread
+    mitk::OperationMode m_OperationMode;           ///< tracking mode (6D tool tracking, 3D marker tracking,...)
+    std::mutex m_MarkerPointsMutex;                ///< mutex for marker point data container
+    mitk::MarkerPointContainerType m_MarkerPoints; ///< container for markers (3D point tracking mode)
   };
 }
 #endif //!LANCET_VEGA_TRACKING_DEVICE_H 
