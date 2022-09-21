@@ -13,15 +13,15 @@ set(MITK_USE_OpenCV ON CACHE BOOL "MITK Use OpenCV Library" FORCE)
 set(MITK_USE_OpenIGTLink ON CACHE BOOL "MITK Use OpenIGTLink Library" FORCE)
 
 set(MITK_CONFIG_PLUGINS ${MITK_CONFIG_PLUGINS}
-  # org.mitk.gui.qt.multilabelsegmentation
-  # org.mitk.matchpoint.core.helper
-  # org.mitk.gui.qt.matchpoint.algorithm.browser
-  # org.mitk.gui.qt.matchpoint.algorithm.control
-  # org.mitk.gui.qt.matchpoint.mapper
-  # org.mitk.gui.qt.matchpoint.framereg
-  # org.mitk.gui.qt.matchpoint.visualizer
-  # org.mitk.gui.qt.matchpoint.evaluator
-  # org.mitk.gui.qt.matchpoint.manipulator
+  org.mitk.gui.qt.multilabelsegmentation
+  org.mitk.matchpoint.core.helper
+  org.mitk.gui.qt.matchpoint.algorithm.browser
+  org.mitk.gui.qt.matchpoint.algorithm.control
+  org.mitk.gui.qt.matchpoint.mapper
+  org.mitk.gui.qt.matchpoint.framereg
+  org.mitk.gui.qt.matchpoint.visualizer
+  org.mitk.gui.qt.matchpoint.evaluator
+  org.mitk.gui.qt.matchpoint.manipulator
   org.mitk.gui.qt.igttracking
   org.mitk.gui.qt.openigtlink
   # org.mitk.gui.qt.moviemaker
