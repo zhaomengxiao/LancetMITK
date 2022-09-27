@@ -114,13 +114,13 @@ namespace mitk {
      */
     void TransferCoordsFromTrackedObjectToTrackingDevice(std::string referenceToolName,
                          AffineTransform3D::Pointer coordsInTrackedObject,
-                         AffineTransform3D::Pointer coordsInTrackingDevice);
+                         AffineTransform3D::Pointer& coordsInTrackingDevice);
     /**
      * \brief Convert data from registration coordinates to tracking device coords
      */
     void TransferCoordsFromTrackingDeviceToTrackedObject(std::string referenceToolName,
                                                          AffineTransform3D::Pointer coordsInTrackingDevice,
-                                                         AffineTransform3D::Pointer coordsInTrackedObject);
+                                                         AffineTransform3D::Pointer& coordsInTrackedObject);
 
   protected:
     TrackingDeviceSource();

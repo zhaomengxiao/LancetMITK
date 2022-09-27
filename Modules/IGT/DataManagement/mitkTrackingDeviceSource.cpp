@@ -195,7 +195,7 @@ void mitk::TrackingDeviceSource::UpdateOutputInformation()
 
 void mitk::TrackingDeviceSource::TransferCoordsFromTrackedObjectToTrackingDevice(std::string referenceToolName,
   AffineTransform3D::Pointer coordsInTrackedObject,
-  AffineTransform3D::Pointer coordsInTrackingDevice)
+  AffineTransform3D::Pointer& coordsInTrackingDevice)
 {
   AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix();
 
@@ -217,7 +217,7 @@ void mitk::TrackingDeviceSource::TransferCoordsFromTrackedObjectToTrackingDevice
 
 void mitk::TrackingDeviceSource::TransferCoordsFromTrackingDeviceToTrackedObject(std::string referenceToolName,
   AffineTransform3D::Pointer coordsInTrackingDevice,
-  AffineTransform3D::Pointer coordsInTrackedObject)
+  AffineTransform3D::Pointer& coordsInTrackedObject)
 {
   AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix();
 
