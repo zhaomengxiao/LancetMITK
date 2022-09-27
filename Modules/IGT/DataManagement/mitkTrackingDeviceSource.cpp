@@ -193,6 +193,51 @@ void mitk::TrackingDeviceSource::UpdateOutputInformation()
   Superclass::UpdateOutputInformation();
 }
 
+void mitk::TrackingDeviceSource::TransferCoordsFromTrackedObjectToTrackingDevice(std::string referenceToolName,
+  AffineTransform3D::Pointer coordsInTrackedObject,
+  AffineTransform3D::Pointer coordsInTrackingDevice)
+{
+  AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix();
+
+  if (this->GetOutput(referenceToolName)==nullptr)
+  {
+    throw std::invalid_argument("can not get named output");
+    return;
+  }
+  mitk::AffineTransform3D::Pointer T_trackingdevice_2_rf = this->GetOutput(referenceToolName)->GetAffineTransform3D();
+
+  //if there is no named tool,this will return a identity matrix
+  mitk::AffineTransform3D::Pointer T_rf_2_trackedobj = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix();
+
+  // T_trackingDevice = T_trackingdevice_2_rf * T_rf_2_trackedobj * T_trackedobj
+  coordsInTrackingDevice = coordsInTrackedObject->Clone();
+  coordsInTrackingDevice->Compose(T_rf_2_trackedobj);
+  coordsInTrackingDevice->Compose(T_trackingdevice_2_rf);
+}
+
+void mitk::TrackingDeviceSource::TransferCoordsFromTrackingDeviceToTrackedObject(std::string referenceToolName,
+  AffineTransform3D::Pointer coordsInTrackingDevice,
+  AffineTransform3D::Pointer coordsInTrackedObject)
+{
+  AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix();
+
+  if (this->GetOutput(referenceToolName) == nullptr)
+  {
+    throw std::invalid_argument("can not get named output");
+    return;
+  }
+  mitk::AffineTransform3D::Pointer T_trackingdevice_2_rf = this->GetOutput(referenceToolName)->GetAffineTransform3D();
+  T_trackingdevice_2_rf->GetInverse(T_trackingdevice_2_rf);
+  // if there is no named tool,this will return a identity matrix
+  mitk::AffineTransform3D::Pointer T_rf_2_trackedobj = GetToolMetaData(referenceToolName)->GetToolRegistrationMatrix()->Clone();
+
+  T_rf_2_trackedobj->GetInverse(T_rf_2_trackedobj);
+  // T_trackedobj = T_trackedobj_2_rf * T_rf_2_trackingdevice * T_trackingDevice
+  coordsInTrackedObject = coordsInTrackingDevice->Clone();
+  coordsInTrackedObject->Compose(T_trackingdevice_2_rf);
+  coordsInTrackedObject->Compose(T_rf_2_trackedobj);
+}
+
 //unsigned int mitk::TrackingDeviceSource::GetToolCount()
 //{
 //  if (m_TrackingDevice)
