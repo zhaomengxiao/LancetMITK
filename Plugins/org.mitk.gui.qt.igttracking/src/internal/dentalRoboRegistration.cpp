@@ -202,10 +202,14 @@ void QmitkIGTFiducialRegistration::GetMatrixDrfToFlange_roboRegis()
     transFlangeToDrf->Concatenate(vtkMatrixFlangeToRot);
     transFlangeToDrf->Update();
 
-    auto matrixDrfToFlange = transFlangeToDrf->GetMatrix();
-    matrixDrfToFlange->Invert();
+    // auto matrixDrfToFlange = transFlangeToDrf->GetMatrix();
+    // matrixDrfToFlange->Invert();
+    //
+    // auto tmpArray = matrixDrfToFlange->GetData();
 
-    auto tmpArray = matrixDrfToFlange->GetData();
+    auto matrixFlangeToDrf = transFlangeToDrf->GetMatrix();
+    
+    auto tmpArray = matrixFlangeToDrf->GetData();
 
     Eigen::Matrix4d eigenMatrixFlangeToDrf{tmpArray};
 
@@ -216,9 +220,9 @@ void QmitkIGTFiducialRegistration::GetMatrixDrfToFlange_roboRegis()
 
     eigenMatrixFlangeToDrf.transposeInPlace();
 
-    MITK_INFO << "matrix TCP to DRF:" << endl << eigenMatrixFlangeToDrf;
+    MITK_INFO << "matrix TCP (flange) to DRF:" << endl << eigenMatrixFlangeToDrf;
 
-    m_Controls.textBrowser_roboRegis->append("DRF to flange matrix has been printed in console");
+    m_Controls.textBrowser_roboRegis->append("TCP (flange) to DRF matrix has been printed in console");
 
   }else
   {
