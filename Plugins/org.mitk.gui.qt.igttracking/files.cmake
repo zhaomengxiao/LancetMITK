@@ -10,6 +10,8 @@ set(INTERNAL_CPP_FILES
   QmitkIGTFiducialRegistration.cpp
   QmitkIGTNavigationToolCalibration.cpp
   dentalEndEffectorCalibration.cpp
+  dentalSteelballCalibration.cpp
+  dentalRoboRegistration.cpp
 )
 
 set(UI_FILES

@@ -77,7 +77,84 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
     m_Controls.pushButton_checkPoint_3_dental, SIGNAL(clicked()), this, SLOT(CollectCheckPoint3InCalibratorDrf()));
   
   connect(m_Controls.pushButton_getFlangeToDrill_dental, SIGNAL(clicked()), this, SLOT(GetDentalFlangeToDrillMatrix()));
+
+  connect(m_Controls.pushButton_confirmProbe_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(ConfirmDentalSteelballProbePointer()));
+  connect(m_Controls.pushButton_confirmSteelballDrf_dentalsteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(ConfirmDentalSteelballDrfPointer()));
+
+  connect(m_Controls.pushButton_checkPoint_1_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint1InSteelballDrf()));
+
+  connect(m_Controls.pushButton_checkPoint_2_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint2InSteelballDrf()));
+
+  connect(m_Controls.pushButton_checkPoint_3_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectCheckPoint3InSteelballDrf()));
+
   
+  connect(m_Controls.pushButton_collectBall1_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter1InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall2_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter2InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall3_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter3InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall4_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter4InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall5_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter5InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall6_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter6InSteelballDrf()));
+  connect(m_Controls.pushButton_collectBall7_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectSteelballCenter7InSteelballDrf()));
+
+  connect(m_Controls.pushButton_compare_dentalSteelball,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CompareSteelballs()));
+
+  connect(m_Controls.pushButton_confirmProbe_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmProbe_roboRegis()));
+  connect(m_Controls.pushButton_confirmRoboDrf_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmRoboDrf_roboRegis()));
+  connect(
+    m_Controls.pushButton_collectAxis1Points_roboRegis, SIGNAL(clicked()), this, SLOT(CollectPointAroundAxis1_roboRegis()));
+  connect(m_Controls.pushButton_collectAxis2Points_roboRegis,
+          SIGNAL(clicked()),
+          this,
+          SLOT(CollectPointAroundAxis2_roboRegis()));
+
+  connect(m_Controls.pushButton_removeAxis1Previous_roboRegis,
+          SIGNAL(clicked()),
+          this, SLOT(RemovePointAxis1_roboRegis()));
+
+  connect(
+    m_Controls.pushButton_removeAxis2Previous_roboRegis, SIGNAL(clicked()), this, SLOT(RemovePointAxis2_roboRegis()));
+
+  connect(m_Controls.pushButton_getDrfToFlangeMatrix, SIGNAL(clicked()), this, SLOT(GetMatrixDrfToFlange_roboRegis()));
+
 
   m_ToolNDPointer = mitk::NavigationData::New();
   m_ReferenceNDPointer = mitk::NavigationData::New();

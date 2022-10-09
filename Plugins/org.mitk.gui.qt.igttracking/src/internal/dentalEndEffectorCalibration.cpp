@@ -221,12 +221,7 @@ void QmitkIGTFiducialRegistration::GetDentalFlangeToDrillMatrix()
 
 
 //--------------------fucntions-----------------------
-void QmitkIGTFiducialRegistration::testtDental()
-{
-  GetMatrixFlangeToRobotDrf();
-  GetMatrixDrillToCheckPoints();
-  GetMatrixCalibratorDrfToCheckPoints();
-}
+
 
 bool QmitkIGTFiducialRegistration::GetMatrixFlangeToRobotDrf()
 {
@@ -456,7 +451,9 @@ bool QmitkIGTFiducialRegistration::ManipulateXYaxes()
 
   //MITK_INFO << "original m_matrix_flangeToDrill" << endl << eigenMatrixFlangeToDrill << endl;
 
-  // Fine tune the x and y axis of the drill coordinate
+  // Fine tune the x and y axis of the drill coordinate axes
+  // its z axis is always at the opposite direction to the drill entrance direction
+  // its z axis is the cross product of the flange Y axis and the z axis 
   if (m_Controls.radioButton_mandible->isChecked() || m_Controls.radioButton_oldDental->isChecked())
   {
     Eigen::Vector3d z{eigenMatrixFlangeToDrill(8), eigenMatrixFlangeToDrill(9), eigenMatrixFlangeToDrill(10)};
