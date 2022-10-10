@@ -60,6 +60,7 @@ namespace mitk
     std::string GetFileWithoutPath(std::string FileWithPath);
     std::string ConvertPointSetToString(mitk::PointSet::Pointer pointSet);
     std::string ConvertPointToString(mitk::Point3D point);
+    std::string ConvertPoint6DToString(Point6D point);
     std::string ConvertQuaternionToString(mitk::Quaternion quat);
     std::string ConvertAffineTransformToString(mitk::AffineTransform3D::Pointer affine);
   };

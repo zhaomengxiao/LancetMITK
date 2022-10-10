@@ -80,6 +80,10 @@ mitk::NavigationTool::NavigationTool(const NavigationTool &other)
   this->m_ToolAxisOrientation = other.m_ToolAxisOrientation;
   if (other.m_ToolRegistrationMatrix.IsNotNull())
     this->m_ToolRegistrationMatrix = other.m_ToolRegistrationMatrix->Clone();
+
+  this->m_VerifyPoint = other.m_VerifyPoint;
+  this->m_LoadData = other.m_LoadData;
+  this->m_TCP = other.m_TCP;
 }
 
 mitk::NavigationTool::~NavigationTool()
@@ -141,11 +145,11 @@ mitk::AffineTransform3D::Pointer mitk::NavigationTool::GetToolTipTransform()
 
 void mitk::NavigationTool::Graft(const DataObject *data)
 {
-  // Attempt to cast data to an NavigationData
-  const Self* nd;
+  // Attempt to cast data to an NavigationTool
+  const Self* nt;
   try
   {
-    nd = dynamic_cast<const Self *>(data);
+    nt = dynamic_cast<const Self *>(data);
   }
   catch (...)
   {
@@ -153,7 +157,7 @@ void mitk::NavigationTool::Graft(const DataObject *data)
       << typeid(data).name() << " to "
       << typeid(const Self *).name();
   }
-  if (!nd)
+  if (!nt)
   {
     // pointer could not be cast back down
     mitkThrowException(mitk::IGTException) << "mitk::NavigationData::Graft cannot cast "
@@ -161,18 +165,22 @@ void mitk::NavigationTool::Graft(const DataObject *data)
       << typeid(const Self *).name();
   }
   // Now copy anything that is needed
-  m_Identifier = nd->GetIdentifier();
-  m_Type = nd->GetType();
-  m_DataNode->SetName(nd->GetDataNode()->GetName());
-  m_DataNode->SetData(nd->GetDataNode()->GetData());
-  m_SpatialObject = nd->GetSpatialObject();
-  m_CalibrationFile = nd->GetCalibrationFile();
-  m_SerialNumber = nd->GetSerialNumber();
-  m_TrackingDeviceType = nd->GetTrackingDeviceType();
-  m_ToolLandmarks = nd->GetToolLandmarks();
-  m_ToolControlPoints = nd->GetToolControlPoints();
-  m_ToolTipPosition = nd->GetToolTipPosition();
-  m_ToolAxisOrientation = nd->GetToolAxisOrientation();
+  m_Identifier = nt->GetIdentifier();
+  m_Type = nt->GetType();
+  m_DataNode->SetName(nt->GetDataNode()->GetName());
+  m_DataNode->SetData(nt->GetDataNode()->GetData());
+  m_SpatialObject = nt->GetSpatialObject();
+  m_CalibrationFile = nt->GetCalibrationFile();
+  m_SerialNumber = nt->GetSerialNumber();
+  m_TrackingDeviceType = nt->GetTrackingDeviceType();
+  m_ToolLandmarks = nt->GetToolLandmarks();
+  m_ToolControlPoints = nt->GetToolControlPoints();
+  m_ToolTipPosition = nt->GetToolTipPosition();
+  m_ToolAxisOrientation = nt->GetToolAxisOrientation();
+  m_ToolRegistrationMatrix = nt->GetToolRegistrationMatrix();
+  m_TCP = nt->GetTCP();
+  m_VerifyPoint = nt->GetVerifyPoint();
+  m_LoadData = nt->GetLoadData();
 }
 
 bool mitk::NavigationTool::IsToolTipSet()
@@ -367,6 +375,10 @@ std::string mitk::NavigationTool::GetStringWithAllToolInformation() const
   _info << "V: "
         << "\n";
   auto offset = m_ToolRegistrationMatrix->GetOffset();
-  _info << offset[0] << " " << offset[1] << " " << offset[2];
-  return _info.str();
+  _info << offset[0] << " " << offset[1] << " " << offset[2] << "\n";
+
+  _info << "TCP: " << m_TCP << "\n"
+        << "Verify Point: " << m_VerifyPoint << "\n"
+        << "Load: " << m_LoadData << "\n";
+  return _info.str(); 
 }

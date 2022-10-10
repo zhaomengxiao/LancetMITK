@@ -199,8 +199,32 @@ mitk::NavigationTool::Pointer mitk::NavigationToolReader::ConvertDataNodeToNavig
   std::string toolRegistrationMatrixString;
   node->GetStringProperty("ToolRegistrationMatrix", toolRegistrationMatrixString);
   matrix = ConvertStringToAffineTransform(toolRegistrationMatrixString);
-
   returnValue->SetToolRegistrationMatrix(matrix);
+  node->RemoveProperty("ToolRegistrationMatrix");
+
+  // TCP
+  mitk::Point6D tcp;
+  std::string tcpString;
+  node->GetStringProperty("TCP", tcpString);
+  tcp = ConvertStringToPoint6D(tcpString);
+  node->RemoveProperty("TCP");
+  returnValue->SetTCP(tcp);
+
+  // VerifyPoint
+  mitk::Point3D point;
+  std::string pointString;
+  node->GetStringProperty("VerifyPoint", pointString);
+  point = ConvertStringToPoint(pointString);
+  node->RemoveProperty("VerifyPoint");
+  returnValue->SetVerifyPoint(point);
+
+  // LoadData
+  double loadData;
+  node->GetDoubleProperty("LoadData", loadData);
+  
+  node->RemoveProperty("LoadData");
+  returnValue->SetLoadData(loadData);
+  
   return returnValue;
 }
 
@@ -244,6 +268,24 @@ mitk::Point3D mitk::NavigationToolReader::ConvertStringToPoint(std::string strin
     point[0] = atof(values.at(0).c_str());
     point[1] = atof(values.at(1).c_str());
     point[2] = atof(values.at(2).c_str());
+  }
+  return point;
+}
+
+mitk::Point6D mitk::NavigationToolReader::ConvertStringToPoint6D(std::string string)
+{
+  std::string valueSeperator = ";";
+  std::vector<std::string> values;
+  split(string, valueSeperator, values);
+  mitk::Point6D point;
+  if (values.size() == 6)
+  {
+    point[0] = atof(values.at(0).c_str());
+    point[1] = atof(values.at(1).c_str());
+    point[2] = atof(values.at(2).c_str());
+    point[3] = atof(values.at(3).c_str());
+    point[4] = atof(values.at(4).c_str());
+    point[5] = atof(values.at(5).c_str());
   }
   return point;
 }

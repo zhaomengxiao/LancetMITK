@@ -64,6 +64,7 @@ namespace mitk {
     std::string GetFileWithoutPath(std::string FileWithPath);
     mitk::PointSet::Pointer ConvertStringToPointSet(std::string string);
     mitk::Point3D ConvertStringToPoint(std::string string);
+    mitk::Point6D ConvertStringToPoint6D(std::string string);
     mitk::Quaternion ConvertStringToQuaternion(std::string string);
     mitk::AffineTransform3D::Pointer ConvertStringToAffineTransform(std::string string);
     void split(std::string& text, std::string& separators, std::vector<std::string>& words);

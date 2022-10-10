@@ -88,6 +88,32 @@ void QmitkNavigationToolCreationWidget::CreateConnections()
     connect((QObject*)(m_Controls->m_ToolAxisY), SIGNAL(valueChanged(int)), this, SLOT(GetValuesFromGuiElements()));
     connect((QObject*)(m_Controls->m_ToolAxisZ), SIGNAL(valueChanged(int)), this, SLOT(GetValuesFromGuiElements()));
 
+    //for robot tool use
+    connect((QObject *)(m_Controls->m_lineEdit_TCP_a), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+    connect((QObject *)(m_Controls->m_lineEdit_TCP_b), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+    connect((QObject *)(m_Controls->m_lineEdit_TCP_c), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+
+    connect(
+      (QObject *)(m_Controls->m_lineEdit_TCP_x), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+    connect(
+      (QObject *)(m_Controls->m_lineEdit_TCP_y), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+    connect(
+      (QObject *)(m_Controls->m_lineEdit_TCP_z), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+
+    connect(
+      (QObject *)(m_Controls->m_lineEditor_verifyPointX), SIGNAL(textChanged(const QString)), this, SLOT(GetValuesFromGuiElements()));
+    connect((QObject *)(m_Controls->m_lineEditor_verifyPointY),
+            SIGNAL(textChanged(const QString)),
+            this,
+            SLOT(GetValuesFromGuiElements()));
+    connect((QObject *)(m_Controls->m_lineEditor_verifyPointZ),
+            SIGNAL(textChanged(const QString)),
+            this,
+            SLOT(GetValuesFromGuiElements()));
+    connect((QObject *)(m_Controls->m_lineEditor_loadData),
+            SIGNAL(textChanged(const QString)),
+            this,
+            SLOT(GetValuesFromGuiElements()));
     //Buttons
     connect((QObject*)(m_Controls->m_LoadCalibrationFile), SIGNAL(clicked()), this, SLOT(OnLoadCalibrationFile()));
     connect(m_Controls->m_Surface_Use_Other, SIGNAL(toggled(bool)), this, SLOT(OnSurfaceUseToggled()));
@@ -297,6 +323,28 @@ void QmitkNavigationToolCreationWidget::GetValuesFromGuiElements()
   //toolAxis.SetElement(1, (m_Controls->m_ToolAxisY->value()));
   //toolAxis.SetElement(2, (m_Controls->m_ToolAxisZ->value()));
   //m_ToolToBeEdited->SetToolAxis(toolAxis);
+
+  //Load
+  m_ToolToBeEdited->SetLoadData(m_Controls->m_lineEditor_loadData->text().toDouble());
+
+  // TCP
+  double tcp[6]{};
+  tcp[0] = m_Controls->m_lineEdit_TCP_x->text().toDouble();
+  tcp[1] = m_Controls->m_lineEdit_TCP_y->text().toDouble();
+  tcp[2] = m_Controls->m_lineEdit_TCP_z->text().toDouble();
+  tcp[3] = m_Controls->m_lineEdit_TCP_a->text().toDouble();
+  tcp[4] = m_Controls->m_lineEdit_TCP_b->text().toDouble();
+  tcp[5] = m_Controls->m_lineEdit_TCP_c->text().toDouble();
+
+  m_ToolToBeEdited->SetTCP(tcp);
+
+  // VerifyPoint
+  double point[3]{};
+  point[0] = m_Controls->m_lineEditor_verifyPointX->text().toDouble();
+  point[1] = m_Controls->m_lineEditor_verifyPointY->text().toDouble();
+  point[2] = m_Controls->m_lineEditor_verifyPointZ->text().toDouble();
+
+  m_ToolToBeEdited->SetVerifyPoint(point);
 }
 
 mitk::NavigationTool::Pointer QmitkNavigationToolCreationWidget::GetCreatedTool()

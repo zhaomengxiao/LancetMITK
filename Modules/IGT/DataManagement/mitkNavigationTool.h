@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include <MitkIGTExports.h>
 
 namespace mitk {
+  typedef mitk::Point<mitk::ScalarType, 6> Point6D;
   /**Documentation
   * \brief An object of this class represents a navigation tool in the view of the software.
   *        A few informations like an identifier, a toolname, a surface and a itk spatial
@@ -39,7 +40,6 @@ namespace mitk {
   class MITKIGT_EXPORT NavigationTool : public itk::DataObject
   {
   public:
-
     mitkClassMacroItkParent(NavigationTool,itk::DataObject);
     itkFactorylessNewMacro(Self);
     itkCloneMacro(Self);
@@ -130,6 +130,15 @@ namespace mitk {
     //ToolRegistrationMatrix
     itkGetConstMacro(ToolRegistrationMatrix, mitk::AffineTransform3D::Pointer);
     itkSetMacro(ToolRegistrationMatrix, mitk::AffineTransform3D::Pointer);
+
+    itkGetConstMacro(LoadData, double);
+    itkSetMacro(LoadData, double);
+
+    itkGetConstMacro(TCP, Point6D);
+    itkSetMacro(TCP, Point6D);
+
+    itkGetConstMacro(VerifyPoint, Point3D);
+    itkSetMacro(VerifyPoint, Point3D);
     //ToolName (only getter):
     /** @return Returns the name of this navigation tool. Returns an empty string if there is
      *          no name (for example because the data node has not been set yet).
@@ -204,7 +213,15 @@ namespace mitk {
     /** @brief Holds the transformation of the main tool axis to the negative z-axis (0,0,-1) */
     mitk::Quaternion m_ToolAxisOrientation;
 
+    /** @brief Holds the Registration Matrix from navigation tool to its attached tracking object*/
     mitk::AffineTransform3D::Pointer m_ToolRegistrationMatrix;
+
+    /** @brief It is used to verify the total error of the robot side error transfer link. */
+    mitk::Point3D m_VerifyPoint;
+    /** @brief Holds The transfer relationship from the flange of the robot to the end tool is recorded as form:  x,y,z,a,b,c.*/
+    Point6D m_TCP;
+    /** @brief Holds The weight of the tool is used for gravity balance at the end of the robot. */
+    double m_LoadData;
   };
 } // namespace mitk
 #endif //NAVIGATIONTOOL

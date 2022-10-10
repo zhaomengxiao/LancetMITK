@@ -141,7 +141,7 @@ namespace mitk {
     *
     * This Method is called internally whenever outputs need to be reset. Old Outputs are deleted when called.
     **/
-    void CreateOutputs();
+    virtual void CreateOutputs();
 
     mitk::TrackingDevice::Pointer m_TrackingDevice;  ///< the tracking device that is used as a source for this filter object
   };
