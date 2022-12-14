@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_3">
+  <layout class="QGridLayout" name="gridLayout_19">
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -153,26 +153,29 @@
       <attribute name="title">
        <string>Arm regis</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_19">
+      <layout class="QGridLayout" name="gridLayout_18">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_10">
          <property name="title">
           <string>Robotic arm end effector calibration</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_18">
-          <item row="1" column="0">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0" colspan="2">
+           <widget class="QmitkNavigationDataSourceSelectionWidget" name="navipointerSelectionWidget_roboRegis" native="true"/>
+          </item>
+          <item row="1" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_30">
             <item>
              <widget class="QLabel" name="label_15">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Probe pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose Trolly DRF pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_31">
               <item>
-               <widget class="QPushButton" name="pushButton_confirmProbe_roboRegis">
+               <widget class="QPushButton" name="pushButton_confirmTrolley_roboRegis">
                 <property name="text">
                  <string>Confirm</string>
                 </property>
@@ -192,7 +195,7 @@
                </spacer>
               </item>
               <item>
-               <widget class="QLabel" name="label_probe_roboRegis">
+               <widget class="QLabel" name="label_trolley_roboRegis">
                 <property name="text">
                  <string>&lt;none&gt;</string>
                 </property>
@@ -202,7 +205,49 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_26">
+            <item>
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose robotic arm DRF pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_27">
+              <item>
+               <widget class="QPushButton" name="pushButton_confirmRoboDrf_roboRegis">
+                <property name="text">
+                 <string>Confirm</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_roboDrf_roboRegis">
+                <property name="text">
+                 <string>&lt;none&gt;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_32">
             <item>
              <widget class="QLabel" name="label_16">
@@ -262,10 +307,7 @@
             </item>
            </layout>
           </item>
-          <item row="0" column="0">
-           <widget class="QmitkNavigationDataSourceSelectionWidget" name="navipointerSelectionWidget_roboRegis" native="true"/>
-          </item>
-          <item row="4" column="0">
+          <item row="4" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_33">
             <item>
              <widget class="QLabel" name="label_17">
@@ -325,52 +367,31 @@
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_26">
-            <item>
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Choose robotic arm DRF pointer:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_27">
-              <item>
-               <widget class="QPushButton" name="pushButton_confirmRoboDrf_roboRegis">
-                <property name="text">
-                 <string>Confirm</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer_17">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_roboDrf_roboRegis">
-                <property name="text">
-                 <string>&lt;none&gt;</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item row="5" column="0">
+          <item row="5" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton_getDrfToFlangeMatrix">
             <property name="text">
-             <string>Get DRF to flange matrix</string>
+             <string>Get flange to end DRF matrix</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QPushButton" name="pushButton_getBaseRfToBaseMatrix">
+            <property name="text">
+             <string>Get baseRF to base matrix</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QPushButton" name="pushButton_getBaseRfToBaseMatrixAvg">
+            <property name="text">
+             <string>Get baseRF to base matrix (100 avg)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QPushButton" name="pushButton_calibrateBendedProbe">
+            <property name="text">
+             <string>Calibrate bended probe</string>
             </property>
            </widget>
           </item>

@@ -25,17 +25,18 @@ found in the LICENSE file.
 
 // Qt
 #include <QSettings>
+#include <QThread>
 
 
 // ↓↓↓↓↓  Slots  ↓↓↓↓↓
-void QmitkIGTFiducialRegistration::ConfirmProbe_roboRegis()
+void QmitkIGTFiducialRegistration::ConfirmTrolley_roboRegis()
 {
   int toolID = m_Controls.navipointerSelectionWidget_roboRegis->GetSelectedToolID();
 
-  m_probeNDpointer_roboRegis =
+  m_trolleyNDpointer_roboRegis =
     m_Controls.navipointerSelectionWidget_roboRegis->GetSelectedNavigationDataSource()->GetOutput(toolID);
 
-  m_Controls.label_probe_roboRegis->setText(
+  m_Controls.label_trolley_roboRegis->setText(
     m_Controls.navipointerSelectionWidget_roboRegis->GetSelectedNavigationTool()->GetToolName().c_str());
 }
 
@@ -66,8 +67,11 @@ void QmitkIGTFiducialRegistration::CollectPointAroundAxis1_roboRegis()
   auto collectedPoints = dynamic_cast<mitk::PointSet *>(GetDataStorage()->GetNamedNode("Points around axis 1")->GetData());
   
   vtkNew<vtkMatrix4x4> matrixNdiToRoboDrf;
-  matrixNdiToRoboDrf->DeepCopy(getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis));
-  
+  // matrixNdiToRoboDrf->DeepCopy(getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis));
+  double array[16];
+  AverageNavigationData(m_roboDrfNDpointer_roboRegis, 30, 20, array);
+  matrixNdiToRoboDrf->DeepCopy(array);
+
   mitk::Point3D tmpPoint;
   tmpPoint[0] = matrixNdiToRoboDrf->GetElement(0, 3);
   tmpPoint[1] = matrixNdiToRoboDrf->GetElement(1, 3);
@@ -77,13 +81,13 @@ void QmitkIGTFiducialRegistration::CollectPointAroundAxis1_roboRegis()
 
   if (poinSetSize == 0)
   {
-    auto ndiToInitialPostureMatrix = getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis);
+    // auto ndiToInitialPostureMatrix = getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis);
 
     for (int i{0}; i < 4; i++)
     {
       for (int j{0}; j < 4; j++)
       {
-        m_matrix_ndiToInitialPosture[4 * i + j] = ndiToInitialPostureMatrix->GetElement(i, j);
+        m_matrix_ndiToInitialPosture[4 * i + j] = matrixNdiToRoboDrf->GetElement(i, j);
       }
     }
     m_Controls.textBrowser_roboRegis->append("Initial Posture captured");
@@ -111,7 +115,11 @@ void QmitkIGTFiducialRegistration::CollectPointAroundAxis2_roboRegis()
     dynamic_cast<mitk::PointSet *>(GetDataStorage()->GetNamedNode("Points around axis 2")->GetData());
 
   vtkNew<vtkMatrix4x4> matrixNdiToRoboDrf;
-  matrixNdiToRoboDrf->DeepCopy(getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis));
+  // matrixNdiToRoboDrf->DeepCopy(getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis));
+  double tmpArray[16];
+  AverageNavigationData(m_roboDrfNDpointer_roboRegis, 30, 20, tmpArray);
+  matrixNdiToRoboDrf->DeepCopy(tmpArray);
+
 
   mitk::Point3D tmpPoint;
   tmpPoint[0] = matrixNdiToRoboDrf->GetElement(0, 3);
@@ -224,11 +232,302 @@ void QmitkIGTFiducialRegistration::GetMatrixDrfToFlange_roboRegis()
 
     m_Controls.textBrowser_roboRegis->append("TCP (flange) to DRF matrix has been printed in console");
 
+	for (int i{ 0 }; i < 4; i++)
+	{
+		  m_Controls.textBrowser_roboRegis->append(
+			QString::number(matrixFlangeToDrf->GetElement(i, 0)) + "  " +
+			QString::number(matrixFlangeToDrf->GetElement(i, 1)) + "  " +
+			QString::number(matrixFlangeToDrf->GetElement(i, 2)) + " " +
+			QString::number(matrixFlangeToDrf->GetElement(i, 3)));
+	}
+
   }else
   {
     m_Controls.textBrowser_roboRegis->append("Points are not ready!");
   }
 }
+
+
+void QmitkIGTFiducialRegistration::GetTrolleyDrfToBase_roboRegis()
+{
+  if(GetDataStorage()->GetNamedNode("RoboBaseToFlange matrix") == nullptr)
+  {
+	  m_Controls.textBrowser_roboRegis->append("The base to flange matrix hasn't been recorded yet");
+	  return;
+  }
+
+  vtkNew<vtkMatrix4x4> flangeToBaseMatrix;
+  auto tmpMatrix = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("RoboBaseToFlange matrix")->GetData())->GetGeometry()->GetVtkMatrix();
+  flangeToBaseMatrix->DeepCopy(tmpMatrix);
+  flangeToBaseMatrix->Invert();
+
+  vtkNew<vtkMatrix4x4> endDrfToFlangeMatrix;
+  endDrfToFlangeMatrix->DeepCopy(m_matrix_flangeToDrf_roboRegis);
+  endDrfToFlangeMatrix->Invert();
+
+  auto trolleyDrfToNdiMatrix = getVtkMatrix4x4(m_trolleyNDpointer_roboRegis);
+  trolleyDrfToNdiMatrix->Invert();
+
+  auto ndiToEndDrfMatrix = getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis);
+
+  vtkNew<vtkTransform> tmpTransform; // baseRf to base
+  tmpTransform->Identity();
+  tmpTransform->PostMultiply();
+  tmpTransform->Concatenate(flangeToBaseMatrix);
+  tmpTransform->Concatenate(endDrfToFlangeMatrix);
+  tmpTransform->Concatenate(ndiToEndDrfMatrix);
+  tmpTransform->Concatenate(trolleyDrfToNdiMatrix);
+  tmpTransform->Update();
+
+  auto trolleyDrfToBase = tmpTransform->GetMatrix();
+
+  m_Controls.textBrowser_roboRegis->append("BaseRf to base matrix:");
+
+  for (int i{0}; i < 4; i++)
+  {
+	  m_Controls.textBrowser_roboRegis->append(
+		  QString::number(trolleyDrfToBase->GetElement(i,0))+"  "+
+		  QString::number(trolleyDrfToBase->GetElement(i, 1)) + "  " + 
+		  QString::number(trolleyDrfToBase->GetElement(i, 2)) + " " + 
+		  QString::number(trolleyDrfToBase->GetElement(i, 3)));
+  }
+
+}
+
+void QmitkIGTFiducialRegistration::GetTrolleyDrfToBaseAvg_roboRegis()
+{
+	if (GetDataStorage()->GetNamedNode("RoboBaseToFlange matrix") == nullptr)
+	{
+		m_Controls.textBrowser_roboRegis->append("The base to flange matrix hasn't been recorded yet");
+		return;
+	}
+  
+	vtkNew<vtkMatrix4x4> flangeToBaseMatrix;
+	auto tmpMatrix = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("RoboBaseToFlange matrix")->GetData())->GetGeometry()->GetVtkMatrix();
+	flangeToBaseMatrix->DeepCopy(tmpMatrix);
+	flangeToBaseMatrix->Invert();
+
+	vtkNew<vtkMatrix4x4> endDrfToFlangeMatrix;
+	endDrfToFlangeMatrix->DeepCopy(m_matrix_flangeToDrf_roboRegis);
+	endDrfToFlangeMatrix->Invert();
+
+	
+	double tmp_x[3]{ 0,0,0 };
+	double tmp_y[3]{ 0,0,0 };
+	double tmp_translation[3]{ 0,0,0 };
+
+  for(int i{0}; i < 100; i++)
+  {
+	  m_trolleyNDpointer_roboRegis->Update();
+	  m_roboDrfNDpointer_roboRegis->Update();
+
+	  auto trolleyDrfToNdiMatrix_tmp = getVtkMatrix4x4(m_trolleyNDpointer_roboRegis);
+	  trolleyDrfToNdiMatrix_tmp->Invert();
+	  // auto trolleyDrfToNdiArray_tmp = trolleyDrfToNdiMatrix_tmp->GetData();
+
+	  auto ndiToEndDrfMatrix_tmp = getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis);
+	  // auto ndiToEndDrfArray_tmp = ndiToEndDrfMatrix_tmp->GetData();
+
+	  vtkNew<vtkTransform> transformBaseRFtoEndRF;
+	  transformBaseRFtoEndRF->Identity();
+	  transformBaseRFtoEndRF->PostMultiply();
+	  transformBaseRFtoEndRF->SetMatrix(ndiToEndDrfMatrix_tmp);
+	  transformBaseRFtoEndRF->Concatenate(trolleyDrfToNdiMatrix_tmp);
+	  transformBaseRFtoEndRF->Update();
+
+	  auto tmpMatrix = transformBaseRFtoEndRF->GetMatrix();
+	  m_Controls.textBrowser_roboRegis->append("Tmp baseRFtoEndRF matrix: " + QString::number(tmpMatrix->GetElement(0, 3)) +
+		  "/" + QString::number(tmpMatrix->GetElement(1, 3)) + "/" + QString::number(tmpMatrix->GetElement(2, 3)));
+
+	  tmp_x[0] += tmpMatrix->GetElement(0, 0);
+	  tmp_x[1] += tmpMatrix->GetElement(1, 0);
+	  tmp_x[2] += tmpMatrix->GetElement(2, 0);
+
+	  tmp_y[0] += tmpMatrix->GetElement(0, 1);
+	  tmp_y[1] += tmpMatrix->GetElement(1, 1);
+	  tmp_y[2] += tmpMatrix->GetElement(2, 1);
+
+	  tmp_translation[0] += tmpMatrix->GetElement(0, 3);
+	  tmp_translation[1] += tmpMatrix->GetElement(1, 3);
+	  tmp_translation[2] += tmpMatrix->GetElement(2, 3);
+
+	  QThread::msleep(70);
+  }
+
+  // Assemble baseRF to EndRF matrix
+  Eigen::Vector3d x;
+  x[0] = tmp_x[0];
+  x[1] = tmp_x[1];
+  x[2] = tmp_x[2];
+  x.normalize();
+
+  Eigen::Vector3d h;
+  h[0] = tmp_y[0];
+  h[1] = tmp_y[1];
+  h[2] = tmp_y[2];
+  h.normalize();
+
+  Eigen::Vector3d z;
+  z = x.cross(h);
+  z.normalize();
+
+  Eigen::Vector3d y;
+  y = z.cross(x);
+  y.normalize();
+
+  tmp_translation[0] = tmp_translation[0] / 100;
+  tmp_translation[1] = tmp_translation[1] / 100;
+  tmp_translation[2] = tmp_translation[2] / 100;
+
+  vtkNew<vtkMatrix4x4> baseRFtoEndRFmatrix;
+  double tmpArray[16]
+  {
+    x[0], y[0], z[0], tmp_translation[0],
+	x[1], y[1], z[1], tmp_translation[1],
+	x[2], y[2], z[2], tmp_translation[2],
+    0,0,0,1
+  };
+  baseRFtoEndRFmatrix->DeepCopy(tmpArray);
+
+
+	vtkNew<vtkTransform> tmpTransform; // baseRf to base
+	tmpTransform->Identity();
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(flangeToBaseMatrix);
+	tmpTransform->Concatenate(endDrfToFlangeMatrix);
+	tmpTransform->Concatenate(baseRFtoEndRFmatrix);
+	tmpTransform->Update();
+
+	auto trolleyDrfToBase = tmpTransform->GetMatrix();
+
+	m_Controls.textBrowser_roboRegis->append("BaseRf to base matrix:");
+
+	for (int i{ 0 }; i < 4; i++)
+	{
+		m_Controls.textBrowser_roboRegis->append(
+			QString::number(trolleyDrfToBase->GetElement(i, 0)) + "  " +
+			QString::number(trolleyDrfToBase->GetElement(i, 1)) + "  " +
+			QString::number(trolleyDrfToBase->GetElement(i, 2)) + " " +
+			QString::number(trolleyDrfToBase->GetElement(i, 3)));
+	}
+}
+
+
+void QmitkIGTFiducialRegistration::CalibrateBendedProbe()
+{
+	auto pointsAroundAxis = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Points around axis 1")->GetData());
+
+	int pointNum = pointsAroundAxis->GetSize();
+
+	if (pointNum < 3)
+	{
+		m_Controls.textBrowser_dental->append("Not enough probe points!");
+	}
+
+	// Get the axis using cross product
+	auto point0 = pointsAroundAxis->GetPoint(0);
+	auto point1 = pointsAroundAxis->GetPoint(1);
+	auto point2 = pointsAroundAxis->GetPoint(3);
+
+	Eigen::Vector3d p0;
+	Eigen::Vector3d p1;
+	Eigen::Vector3d p2;
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		p0[i] = point0[i];
+		p1[i] = point1[i];
+		p2[i] = point2[i];
+	}
+
+	Eigen::Vector3d v0 = p1 - p0;
+	Eigen::Vector3d v1 = p2 - p0;
+
+	Eigen::Vector3d axisVector = v0.cross(v1);
+	axisVector.normalize();
+
+	double axis[3]{ 0 };
+
+	if (pointNum == 3)
+	{
+		axis[0] = axisVector[0];
+		axis[1] = axisVector[1];
+		axis[2] = axisVector[2];
+
+	}
+
+	// Get the axis by fitting a circle
+	std::vector<double> inp_pointset(3 * (pointsAroundAxis->GetSize()));
+	std::array<double, 3> outp_center;
+	double outp_radius;
+	std::array<double, 3> outp_normal;
+	for (int i{ 0 }; i < (pointsAroundAxis->GetSize()); i++)
+	{
+		inp_pointset[3 * i] = pointsAroundAxis->GetPoint(i)[0];
+		inp_pointset[3 * i + 1] = pointsAroundAxis->GetPoint(i)[1];
+		inp_pointset[3 * i + 2] = pointsAroundAxis->GetPoint(i)[2];
+	}
+
+	lancetAlgorithm::fit_circle_3d(inp_pointset, outp_center, outp_radius, outp_normal);
+
+	if ((outp_normal[0] * axisVector[0] + outp_normal[1] * axisVector[1] + outp_normal[2] * axisVector[2]) > 0)
+	{
+		axis[0] = outp_normal[0];
+		axis[1] = outp_normal[1];
+		axis[2] = outp_normal[2];
+	}
+	else
+	{
+		axis[0] = -outp_normal[0];
+		axis[1] = -outp_normal[1];
+		axis[2] = -outp_normal[2];
+	}
+
+	double onePointOnPositiveAxis[3]{ 0 };
+	onePointOnPositiveAxis[0] = outp_center[0] + axis[0];
+	onePointOnPositiveAxis[1] = outp_center[1] + axis[1];
+	onePointOnPositiveAxis[2] = outp_center[2] + axis[2];
+
+	vtkNew<vtkMatrix4x4> centerMatrix;
+	centerMatrix->Identity();
+	centerMatrix->SetElement(0, 3, outp_center[0]);
+	centerMatrix->SetElement(1, 3, outp_center[1]);
+	centerMatrix->SetElement(2, 3, outp_center[2]);
+
+	vtkNew<vtkMatrix4x4> positiveAxisPointMatrix;
+	positiveAxisPointMatrix->Identity();
+	positiveAxisPointMatrix->SetElement(0, 3, onePointOnPositiveAxis[0]);
+	positiveAxisPointMatrix->SetElement(1, 3, onePointOnPositiveAxis[1]);
+	positiveAxisPointMatrix->SetElement(2, 3, onePointOnPositiveAxis[2]);
+
+
+	auto probeToNdiMatrix = getVtkMatrix4x4(m_roboDrfNDpointer_roboRegis);
+	probeToNdiMatrix->Invert();
+
+	vtkNew<vtkTransform> tmpTrans_0;
+	tmpTrans_0->PostMultiply();
+	tmpTrans_0->SetMatrix(centerMatrix);
+	tmpTrans_0->Concatenate(probeToNdiMatrix);
+	tmpTrans_0->Update();
+
+	vtkNew<vtkTransform> tmpTrans_1;
+	tmpTrans_1->PostMultiply();
+	tmpTrans_1->SetMatrix(positiveAxisPointMatrix);
+	tmpTrans_1->Concatenate(probeToNdiMatrix);
+	tmpTrans_1->Update();
+
+	m_Controls.textBrowser_dental->append("Circle center under probe:" + 
+	QString::number(tmpTrans_0->GetMatrix()->GetElement(0,3))+ "/"+
+		QString::number(tmpTrans_0->GetMatrix()->GetElement(1, 3)) + "/" + 
+		QString::number(tmpTrans_0->GetMatrix()->GetElement(2, 3)) + "/");
+
+	m_Controls.textBrowser_dental->append("Positive axis point under probe:" +
+		QString::number(tmpTrans_1->GetMatrix()->GetElement(0, 3)) + "/" +
+		QString::number(tmpTrans_1->GetMatrix()->GetElement(1, 3)) + "/" +
+		QString::number(tmpTrans_1->GetMatrix()->GetElement(2, 3)) + "/");
+
+}
+
 
 
 // ↑↑↑↑↑  Slots  ↑↑↑↑↑ 
@@ -482,6 +781,77 @@ bool QmitkIGTFiducialRegistration::GetFlageOriginInNdi_roboRegis(mitk::PointSet:
   center[2] = outp_center[2];
 
   return true;
+}
+
+
+bool QmitkIGTFiducialRegistration::AverageNavigationData(mitk::NavigationData::Pointer ndPtr, int timeInterval /*milisecond*/, int intervalNum, double matrixArray[16])
+{
+  // The frame rate of Vega ST is 60 Hz, so the timeInterval should be larger than 16.7 ms
+
+	double tmp_x[3]{ 0,0,0 };
+	double tmp_y[3]{ 0,0,0 };
+	double tmp_translation[3]{ 0,0,0 };
+
+	for (int i{ 0 }; i < intervalNum; i++)
+	{
+		ndPtr->Update();
+
+		auto tmpMatrix = getVtkMatrix4x4(ndPtr);
+
+		tmp_x[0] += tmpMatrix->GetElement(0, 0);
+		tmp_x[1] += tmpMatrix->GetElement(1, 0);
+		tmp_x[2] += tmpMatrix->GetElement(2, 0);
+
+		tmp_y[0] += tmpMatrix->GetElement(0, 1);
+		tmp_y[1] += tmpMatrix->GetElement(1, 1);
+		tmp_y[2] += tmpMatrix->GetElement(2, 1);
+
+		tmp_translation[0] += tmpMatrix->GetElement(0, 3);
+		tmp_translation[1] += tmpMatrix->GetElement(1, 3);
+		tmp_translation[2] += tmpMatrix->GetElement(2, 3);
+
+		QThread::msleep(timeInterval);
+	}
+
+	// Assemble baseRF to EndRF matrix
+	Eigen::Vector3d x;
+	x[0] = tmp_x[0];
+	x[1] = tmp_x[1];
+	x[2] = tmp_x[2];
+	x.normalize();
+
+	Eigen::Vector3d h;
+	h[0] = tmp_y[0];
+	h[1] = tmp_y[1];
+	h[2] = tmp_y[2];
+	h.normalize();
+
+	Eigen::Vector3d z;
+	z = x.cross(h);
+	z.normalize();
+
+	Eigen::Vector3d y;
+	y = z.cross(x);
+	y.normalize();
+
+	tmp_translation[0] = tmp_translation[0] / intervalNum;
+	tmp_translation[1] = tmp_translation[1] / intervalNum;
+	tmp_translation[2] = tmp_translation[2] / intervalNum;
+
+	double tmpArray[16]
+	{
+	  x[0], y[0], z[0], tmp_translation[0],
+	  x[1], y[1], z[1], tmp_translation[1],
+	  x[2], y[2], z[2], tmp_translation[2],
+	  0,0,0,1
+	};
+
+  for (int i{0}; i<16; i++)
+  {
+	  matrixArray[i] = tmpArray[i];
+  }
+
+	return true;
 }
 
 

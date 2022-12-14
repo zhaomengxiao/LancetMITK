@@ -137,7 +137,7 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
           this,
           SLOT(CompareSteelballs()));
 
-  connect(m_Controls.pushButton_confirmProbe_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmProbe_roboRegis()));
+  connect(m_Controls.pushButton_confirmTrolley_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmTrolley_roboRegis()));
   connect(m_Controls.pushButton_confirmRoboDrf_roboRegis, SIGNAL(clicked()), this, SLOT(ConfirmRoboDrf_roboRegis()));
   connect(
     m_Controls.pushButton_collectAxis1Points_roboRegis, SIGNAL(clicked()), this, SLOT(CollectPointAroundAxis1_roboRegis()));
@@ -154,6 +154,13 @@ void QmitkIGTFiducialRegistration::CreateQtPartControl(QWidget *parent)
     m_Controls.pushButton_removeAxis2Previous_roboRegis, SIGNAL(clicked()), this, SLOT(RemovePointAxis2_roboRegis()));
 
   connect(m_Controls.pushButton_getDrfToFlangeMatrix, SIGNAL(clicked()), this, SLOT(GetMatrixDrfToFlange_roboRegis()));
+
+  connect(m_Controls.pushButton_getBaseRfToBaseMatrix, SIGNAL(clicked()), this, SLOT(GetTrolleyDrfToBase_roboRegis()));
+  connect(m_Controls.pushButton_getBaseRfToBaseMatrixAvg, SIGNAL(clicked()), this, SLOT(GetTrolleyDrfToBaseAvg_roboRegis()));
+
+
+  connect(m_Controls.pushButton_calibrateBendedProbe, SIGNAL(clicked()), this, SLOT(CalibrateBendedProbe()));
+
 
 
   m_ToolNDPointer = mitk::NavigationData::New();

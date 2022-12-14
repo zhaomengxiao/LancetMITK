@@ -97,7 +97,7 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
 
   // -------------------- Start of Dental robotic arm registration slots ------------------- 
-  void ConfirmProbe_roboRegis();
+  void ConfirmTrolley_roboRegis();
   void ConfirmRoboDrf_roboRegis();
 
   void CollectPointAroundAxis1_roboRegis();
@@ -108,7 +108,15 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
  
   void GetMatrixDrfToFlange_roboRegis();
 
+  void GetTrolleyDrfToBase_roboRegis();
+  void GetTrolleyDrfToBaseAvg_roboRegis();
+
   // -------------------- End of Dental robotic arm registration slots ------------------- 
+
+
+  // Calibrate bended probe
+  void CalibrateBendedProbe();
+
 
 
   protected:
@@ -261,7 +269,7 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
 
 
   //---------------Start of dental robotic arm registration ------------------------
-  mitk::NavigationData::Pointer m_probeNDpointer_roboRegis;
+  mitk::NavigationData::Pointer m_trolleyNDpointer_roboRegis;
   mitk::NavigationData::Pointer m_roboDrfNDpointer_roboRegis;
 
   double m_matrix_ndiToInitialPosture[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // from NDI
@@ -278,6 +286,10 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   bool GetMatrixNdiToRot();
   bool GetAxis_roboRegis(mitk::PointSet::Pointer pointsAroundAxis, double axis[3]);
   bool GetFlageOriginInNdi_roboRegis(mitk::PointSet::Pointer points, double center[3]);
+
+
+  bool AverageNavigationData(mitk::NavigationData::Pointer ndPtr, 
+	        int timeInterval /*milisecond*/, int intervalNum, double matrixArray[16]);
 
   //---------------End of dental robotic arm registration ------------------------
 
