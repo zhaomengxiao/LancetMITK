@@ -85,7 +85,7 @@ namespace mitk
      * @param array the array which should store the values of this.
      */
     template <typename ArrayType>
-    void ToArray(ArrayType array) const
+    void ToArray(ArrayType& array) const
     {
       mitk::ToArray<ArrayType, TCoordRep, NPointDimension>(array, *this);
     }
