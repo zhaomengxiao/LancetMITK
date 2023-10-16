@@ -289,7 +289,8 @@ void mitk::GizmoInteractor::ScaleEqually(StateMachineAction *, InteractionEvent 
   double relativeSize = (currentPosition2D - m_InitialGizmoCenter2D).GetNorm() /
                         (m_InitialClickPosition2D - m_InitialGizmoCenter2D).GetNorm();
 
-  ApplyEqualScalingToManipulatedObject(relativeSize);
+  // ApplyEqualScalingToManipulatedObject(relativeSize);
+  ApplyXScalingToManipulatedObject(relativeSize);
   RenderingManager::GetInstance()->ForceImmediateUpdateAll();
 }
 
@@ -321,6 +322,33 @@ void mitk::GizmoInteractor::ApplyEqualScalingToManipulatedObject(double scalingF
 
   manipulatedGeometry->ExecuteOperation(m_FinalDoOperation.get());
   m_ManipulatedObjectGeometry->SetIndexToWorldTransform(manipulatedGeometry->GetIndexToWorldTransform());
+}
+
+void mitk::GizmoInteractor::ApplyXScalingToManipulatedObject(double scalingFactor)
+{
+	assert(m_ManipulatedObjectGeometry.IsNotNull());
+	auto manipulatedGeometry = m_InitialManipulatedObjectGeometry->Clone();
+
+	mitk::Point3D a;
+	a[0] = (scalingFactor - 1) * abs(m_AxisOfMovement[0]);
+	a[1] = (scalingFactor - 1) * abs(m_AxisOfMovement[1]);
+	a[2] = (scalingFactor - 1) * abs(m_AxisOfMovement[2]);
+
+
+
+	mitk::Point3D b;
+	b[0] = -(scalingFactor - 1) * abs(m_AxisOfMovement[0]);
+	b[1] = -(scalingFactor - 1) * abs(m_AxisOfMovement[1]);
+	b[2] = -(scalingFactor - 1) * abs(m_AxisOfMovement[0]);
+
+	m_FinalDoOperation.reset(new ScaleOperation(OpSCALE, a, m_InitialGizmoCenter3D));
+	if (m_UndoEnabled)
+	{
+		m_FinalUndoOperation.reset(new ScaleOperation(OpSCALE, b, m_InitialGizmoCenter3D));
+	}
+
+	manipulatedGeometry->ExecuteOperation(m_FinalDoOperation.get());
+	m_ManipulatedObjectGeometry->SetIndexToWorldTransform(manipulatedGeometry->GetIndexToWorldTransform());
 }
 
 void mitk::GizmoInteractor::ApplyRotationToManipulatedObject(double angle_deg)

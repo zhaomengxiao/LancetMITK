@@ -105,6 +105,9 @@ namespace mitk
     //! Applies a calculated scaling factor the manipulated object.
     void ApplyEqualScalingToManipulatedObject(double scalingFactor);
 
+    // Test
+	  void ApplyXScalingToManipulatedObject(double scalingFactor);
+
     //! Applies a calculated rotation angle to the manipulated object.
     void ApplyRotationToManipulatedObject(double angle_deg);
 
