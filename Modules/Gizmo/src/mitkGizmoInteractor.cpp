@@ -26,6 +26,7 @@ found in the LICENSE file.
 #include <mitkVtkMapper.h>
 
 // VTK includes
+#include "mitkMatrixConvert.h"
 #include <vtkCamera.h>
 #include <vtkInteractorObserver.h>
 #include <vtkInteractorStyle.h>
@@ -290,8 +291,11 @@ void mitk::GizmoInteractor::ScaleEqually(StateMachineAction *, InteractionEvent 
                         (m_InitialClickPosition2D - m_InitialGizmoCenter2D).GetNorm();
 
   // ApplyEqualScalingToManipulatedObject(relativeSize);
+
   ApplyXScalingToManipulatedObject(relativeSize);
+
   RenderingManager::GetInstance()->ForceImmediateUpdateAll();
+
 }
 
 void mitk::GizmoInteractor::ApplyTranslationToManipulatedObject(const Vector3D &translation)
@@ -327,28 +331,94 @@ void mitk::GizmoInteractor::ApplyEqualScalingToManipulatedObject(double scalingF
 void mitk::GizmoInteractor::ApplyXScalingToManipulatedObject(double scalingFactor)
 {
 	assert(m_ManipulatedObjectGeometry.IsNotNull());
-	auto manipulatedGeometry = m_InitialManipulatedObjectGeometry->Clone();
 
-	mitk::Point3D a;
-	a[0] = (scalingFactor - 1) * abs(m_AxisOfMovement[0]);
-	a[1] = (scalingFactor - 1) * abs(m_AxisOfMovement[1]);
-	a[2] = (scalingFactor - 1) * abs(m_AxisOfMovement[2]);
-
-
-
-	mitk::Point3D b;
-	b[0] = -(scalingFactor - 1) * abs(m_AxisOfMovement[0]);
-	b[1] = -(scalingFactor - 1) * abs(m_AxisOfMovement[1]);
-	b[2] = -(scalingFactor - 1) * abs(m_AxisOfMovement[0]);
-
-	m_FinalDoOperation.reset(new ScaleOperation(OpSCALE, a, m_InitialGizmoCenter3D));
-	if (m_UndoEnabled)
+  // Obtain the rotation matrix from the initial object transform 
+	auto initTransMatrix = vtkMatrix4x4::New();
+	
+	auto rotMatrix = vtkMatrix4x4::New();
+	rotMatrix->Identity();
+	
+	auto scaleMatrix = vtkMatrix4x4::New();
+	scaleMatrix->Identity();
+	
+	auto translateMatrix = vtkMatrix4x4::New();
+	translateMatrix->Identity();
+	translateMatrix->SetElement(0, 3, m_InitialGizmoCenter3D[0]);
+	translateMatrix->SetElement(1, 3, m_InitialGizmoCenter3D[1]);
+	translateMatrix->SetElement(2, 3, m_InitialGizmoCenter3D[2]);
+	
+	
+	auto initItkTrans = m_InitialManipulatedObjectGeometry->GetIndexToWorldTransform();
+	
+	mitk::TransferItkTransformToVtkMatrix(initItkTrans, initTransMatrix);
+	
+	Eigen::Vector3d x;
+	Eigen::Vector3d y;
+	Eigen::Vector3d z;
+	
+	for (int i{ 0 }; i < 3; i++)
 	{
-		m_FinalUndoOperation.reset(new ScaleOperation(OpSCALE, b, m_InitialGizmoCenter3D));
+		x[i] = initTransMatrix->GetElement(i, 0);
+		y[i] = initTransMatrix->GetElement(i, 1);
+		z[i] = initTransMatrix->GetElement(i, 2);
+	}
+	
+	double x_scale = 1;
+	double y_scale = 1;
+	double z_scale = 1;
+
+	switch (m_PickedHandle) {
+	case Gizmo::ScaleX:
+		x_scale *= scalingFactor;
+		break;
+	case Gizmo::ScaleY:
+		y_scale *= scalingFactor;
+		break;
+	case Gizmo::ScaleZ:
+		z_scale *= scalingFactor;
+		break;
 	}
 
-	manipulatedGeometry->ExecuteOperation(m_FinalDoOperation.get());
-	m_ManipulatedObjectGeometry->SetIndexToWorldTransform(manipulatedGeometry->GetIndexToWorldTransform());
+	scaleMatrix->SetElement(0, 0, x_scale);
+	scaleMatrix->SetElement(1, 1, y_scale);
+	scaleMatrix->SetElement(2, 2, z_scale);
+
+	x.normalize();
+	y.normalize();
+	z.normalize();
+	
+	for (int i{ 0 }; i < 3; i++)
+	{
+		rotMatrix->SetElement(i, 0, x[i]);
+		rotMatrix->SetElement(i, 1, y[i]);
+		rotMatrix->SetElement(i, 2, z[i]);
+	}
+	
+	auto inverseRotMatrix = vtkMatrix4x4::New();
+	auto inverseTranslateMatrix = vtkMatrix4x4::New();
+	
+	inverseRotMatrix->DeepCopy(rotMatrix);
+	inverseRotMatrix->Invert();
+	inverseTranslateMatrix->DeepCopy(translateMatrix);
+	inverseTranslateMatrix->Invert();
+	
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->Concatenate(initTransMatrix);
+	tmpTrans->Concatenate(inverseTranslateMatrix);
+	tmpTrans->Concatenate(inverseRotMatrix);
+	tmpTrans->Concatenate(scaleMatrix);
+	tmpTrans->Concatenate(rotMatrix);
+	tmpTrans->Concatenate(translateMatrix);
+	tmpTrans->Update();
+
+  auto finalAffineTrans = mitk::AffineTransform3D::New();
+
+	mitk::TransferVtkMatrixToItkTransform(tmpTrans->GetMatrix(), finalAffineTrans.GetPointer());
+
+	// m_ManipulatedObjectGeometry->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix()); // if use this line, Gizmo cannot be updated in real time
+	m_ManipulatedObjectGeometry->SetIndexToWorldTransform(finalAffineTrans);
 }
 
 void mitk::GizmoInteractor::ApplyRotationToManipulatedObject(double angle_deg)
